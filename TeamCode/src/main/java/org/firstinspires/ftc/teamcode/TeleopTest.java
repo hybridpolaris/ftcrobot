@@ -10,7 +10,7 @@ import java.lang.Math;
 
 
 
-@TeleOp(name="Basic: Linear OpMode", group="Linear OpMode")
+@TeleOp(name="Telop test")
 
 public class TeleopTest extends LinearOpMode {
     private ElapsedTime runtime = new ElapsedTime();
