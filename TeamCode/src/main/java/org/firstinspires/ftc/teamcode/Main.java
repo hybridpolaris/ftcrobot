@@ -14,7 +14,7 @@ public class Main extends OpMode {
     private DcMotorEx frontLeft;
     private DcMotorEx backRight;
     private DcMotorEx backLeft;
-    private double speed = 10;
+    final private double speed = 10;
 
     @Override
     public void init() {
@@ -28,10 +28,10 @@ public class Main extends OpMode {
     }
 
     void omniWheelsSetup() {
-        frontRight = hardwareMap.get(DcMotorEx.class, "m0");
-        frontLeft = hardwareMap.get(DcMotorEx.class, "m0");
-        backRight = hardwareMap.get(DcMotorEx.class, "m03");
-        backLeft = hardwareMap.get(DcMotorEx.class, "m02");
+        frontRight = hardwareMap.get(DcMotorEx.class, "m2");
+        frontLeft = hardwareMap.get(DcMotorEx.class, "m3");
+        backRight = hardwareMap.get(DcMotorEx.class, "m1");
+        backLeft = hardwareMap.get(DcMotorEx.class, "m0");
 
         frontLeft.setDirection(DcMotorEx.Direction.FORWARD);
         backLeft.setDirection(DcMotorEx.Direction.FORWARD);
@@ -65,7 +65,7 @@ public class Main extends OpMode {
         backRight.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, omniPID);
     }
 
-    void omniWheelsLoop() { // TODO: redo the Forward/Backwards &  Rotation formula
+    void omniWheelsLoop() { // TODO: remember/relearn how this works
         double rightPower = speed * (gamepad1.left_stick_y - gamepad1.right_stick_x); // rotation
         double leftPower = speed * (gamepad1.left_stick_y + gamepad1.right_stick_x); // and fw/bw
         double power = speed * gamepad1.left_stick_x; // strafe
