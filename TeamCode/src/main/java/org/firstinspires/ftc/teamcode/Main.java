@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 @TeleOp(name = "Omni", group = "Robot")
@@ -80,5 +81,34 @@ public class Main extends OpMode {
         telemetry.addData("frontRight wheel", frontRight.getVelocity());
         telemetry.addData("backLeft wheel", backLeft.getVelocity());
         telemetry.addData("backRight wheel", backRight.getVelocity());
+    }
+}
+
+class PID {
+    private final double kP;
+    private final double kI;
+    private final double kD;
+    private double integral = 0;
+    private double previousError = 0;
+    private final ElapsedTime loopTime;
+
+    public PID(double kP, double kI, double kD) {
+        this.kP = kP;
+        this.kI = kI;
+        this.kD = kD;
+        loopTime = new ElapsedTime();
+        loopTime.reset();
+    }
+
+    public double calculatePID(double target, double current) {
+        double deltaTime = loopTime.seconds();
+        loopTime.reset();
+
+        double error = target - current;
+        integral += error * deltaTime;
+        double derivative = deltaTime > 0 ? (error - previousError) / deltaTime : 0;
+        previousError = error;
+
+        return kP * error + kI * integral + kD * derivative;
     }
 }
