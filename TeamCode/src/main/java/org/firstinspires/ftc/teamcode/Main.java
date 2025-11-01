@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-@TeleOp(name = "Omni", group = "Robot")
+@TeleOp(name="thing")
 public class Main extends OpMode {
     private DcMotorEx frontRight;
     private DcMotorEx frontLeft;
