@@ -27,10 +27,10 @@ public class Main extends OpMode {
     }
 
     void omniWheelsSetup() {
-        frontRight = hardwareMap.get(DcMotorEx.class, "em0");
-        frontLeft = hardwareMap.get(DcMotorEx.class, "em0");
-        backRight = hardwareMap.get(DcMotorEx.class, "em03");
-        backLeft = hardwareMap.get(DcMotorEx.class, "em02");
+        frontRight = hardwareMap.get(DcMotorEx.class, "m0");
+        frontLeft = hardwareMap.get(DcMotorEx.class, "m0");
+        backRight = hardwareMap.get(DcMotorEx.class, "m03");
+        backLeft = hardwareMap.get(DcMotorEx.class, "m02");
 
         frontLeft.setDirection(DcMotorEx.Direction.FORWARD);
         backLeft.setDirection(DcMotorEx.Direction.FORWARD);
