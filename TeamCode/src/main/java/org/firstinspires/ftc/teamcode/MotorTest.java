@@ -27,14 +27,14 @@ public class MotorTest extends LinearOpMode {
             TimeUnit.SECONDS.wait(5);
             Print("Stopping");
             SetPowerAll(0);
+
+            telemetry.Update();
         }
     }
-
-
-    public static void Print(String message){
+    public void Print(String message){
         telemetry.addData("Log", message);
     };
-    public static void SetPowerAll(double power){
+    public void SetPowerAll(double power){
         for (int i=0;i<4;i++){
             DcMotor motor = hardwareMap.get(DcMotor.class,"m"+i);
             motor.setPower(power);
