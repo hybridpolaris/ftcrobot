@@ -20,6 +20,7 @@ public class AdvancedMotorTest extends LinearOpMode {
 
     int[] directions = new int[4];
     int selectedMotor = 0;
+    float step = 1;
     boolean previousInputDown = false;
     
     Arrays.fill(directions,0);
@@ -31,14 +32,26 @@ public class AdvancedMotorTest extends LinearOpMode {
         }else if(gamepad1.dpad_up){
           selectedMotor -= 1;
         }
-        selectedMotor = (selectedMotor + 400) % 4;
+        selectedMotor = (selectedMotor + 500) % 5;
 
         if (gamepad1.dpad_right){
-          directions[selectedMotor] += 1;
+          if (selectedMotor == 4){
+            step += 0.1;
+          }else{
+            directions[selectedMotor] += step;
+          }
         }else if (gamepad1.dpad_left){
-          directions[selectedMotor] -= 1;
+          if (selectedMotor == 4){
+            step -= 0.1;
+          }else{
+            directions[selectedMotor] -= step;
+          }
         }
-        directions[selectedMotor] = Range.clip(directions[selectedMotor] ,-1,1);
+        if (selectedMotor == 4){
+          step = Range.clip(step ,0.1,1);
+        }else{
+          directions[selectedMotor] = Range.clip(directions[selectedMotor] ,-1,1);
+        }
       }
       for (int i=0;i<4;i++){
         DcMotor motor = hardwareMap.get(DcMotor.class,"m"+i);
@@ -61,6 +74,7 @@ public class AdvancedMotorTest extends LinearOpMode {
         }
         telemetry.addData(((selectedMotor == i) ? "> Motor " : "Motor " ).concat(String.valueOf(i)), directions[i]);
       }
+      telemetry.addData((selectedMotor == 4) ? "> Step " : "Step ", step);
       telemetry.update();
 
       previousInputDown = inputDown;
