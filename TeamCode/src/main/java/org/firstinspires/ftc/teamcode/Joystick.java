@@ -11,28 +11,28 @@ import java.lang.Math;
 
 
 
-@TeleOp(name="Telop test")
+@TeleOp(name="Joystick controls")
 
-public class TeleopTest extends LinearOpMode {
-    private ElapsedTime runtime = new ElapsedTime();
+public class Joystick extends LinearOpMode {
     private DcMotor backLeftDrive = null;
     private DcMotor backRightDrive = null;
     private DcMotor frontLeftDrive = null;
     private DcMotor frontRightDrive = null;
 
+    private ShooterController shooterController = new ShooterController(this);
     @Override
     public void runOpMode() {
         telemetry.addData("Status","Init");
         telemetry.update();
 
-        backLeftDrive  = hardwareMap.get(DcMotor.class, "m0");
-        backRightDrive = hardwareMap.get(DcMotor.class, "m1");
-        frontLeftDrive  = hardwareMap.get(DcMotor.class, "m2");
-        frontRightDrive = hardwareMap.get(DcMotor.class, "m3");
+        backLeftDrive  = hardwareMap.get(DcMotor.class, "m1");
+        backRightDrive = hardwareMap.get(DcMotor.class, "em1");
+        frontLeftDrive  = hardwareMap.get(DcMotor.class, "m0");
+        frontRightDrive = hardwareMap.get(DcMotor.class, "em0");
 
-        backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
+        backLeftDrive.setDirection(DcMotor.Direction.FORWARD);
         backRightDrive.setDirection(DcMotor.Direction.FORWARD);
-        frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
+        frontLeftDrive.setDirection(DcMotor.Direction.FORWARD);
         frontRightDrive.setDirection(DcMotor.Direction.FORWARD);
 
         backLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -41,15 +41,16 @@ public class TeleopTest extends LinearOpMode {
         frontRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         waitForStart();
-        runtime.reset();
         
         double turn = 0;
         double strafe = 0;
         double drive = 0;
         boolean shoot = false;
-        double power = 1;
+        double power = -1;
         double x_control = 0;
         double y_control = 0;
+        
+        shooterController.init();
         while (opModeIsActive()) {
             x_control = gamepad1.left_stick_x + ((gamepad1.dpad_right?1:0)-(gamepad1.dpad_left?1:0));
             y_control = -gamepad1.left_stick_y + ((gamepad1.dpad_up?1:0)-(gamepad1.dpad_down?1:0));
@@ -80,6 +81,8 @@ public class TeleopTest extends LinearOpMode {
             backRightDrive.setPower(backRightPower * power);
             frontLeftDrive.setPower(frontLeftPower * power);
             frontRightDrive.setPower(frontRightPower * power);
+
+            shooterController.run();
 
             telemetry.addData("Drive", -gamepad1.left_stick_y);
             telemetry.addData("Turn", gamepad1.right_stick_x);

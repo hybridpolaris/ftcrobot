@@ -20,7 +20,7 @@ public class AdvancedMotorTest extends LinearOpMode {
 
     int[] directions = new int[4];
     int selectedMotor = 0;
-    float step = 1;
+    double step = 1;
     boolean previousInputDown = false;
     
     Arrays.fill(directions,0);
