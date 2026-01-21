@@ -23,6 +23,7 @@ public class AdvancedMotorTestExpanded extends LinearOpMode {
     int selectedMotor = 0;
     double step = 1;
     boolean previousInputDown = false;
+    boolean expansion = false;
 
     Arrays.fill(directions, 0);
     while (opModeIsActive()) {
@@ -33,7 +34,7 @@ public class AdvancedMotorTestExpanded extends LinearOpMode {
         } else if (gamepad1.dpad_up) {
           selectedMotor -= 1;
         }
-        selectedMotor = (selectedMotor + (directions.length + 1)*100) % (directions.length + 1);
+        selectedMotor = (selectedMotor + (directions.length + 1) * 100) % (directions.length + 1);
 
         if (gamepad1.dpad_right) {
           if (selectedMotor == directions.length) {
@@ -54,19 +55,16 @@ public class AdvancedMotorTestExpanded extends LinearOpMode {
           directions[selectedMotor] = Range.clip(directions[selectedMotor], -1, 1);
         }
       }
+      if (gamepad1.a) {
+        for (int i = 0; i < 4; i++) {
+          DcMotor motor = hardwareMap.get(DcMotor.class, (expansion ? "em" : "m") + i);
+          motor.setPower(0);
+        }
+        expansion = !expansion;
+      }
       for (int i = 0; i < directions.length; i++) {
-        if (gamepad1.a) {
-          directions[i] = 1;
-        }
-        if (gamepad1.b) {
-          directions[i] = -1;
-        }
-        if (gamepad1.x) {
-          directions[i] = 0;
-        }
-
         if (i < 4) {
-          DcMotor motor = hardwareMap.get(DcMotor.class, "m" + i);
+          DcMotor motor = hardwareMap.get(DcMotor.class, (expansion ? "em" : "m") + i);
           motor.setPower(Math.abs(directions[i]));
           if (directions[i] > 0) {
             motor.setDirection(DcMotor.Direction.FORWARD);
@@ -75,18 +73,27 @@ public class AdvancedMotorTestExpanded extends LinearOpMode {
           }
           telemetry.addData(((selectedMotor == i) ? "> Motor " : "Motor ").concat(String.valueOf(i)), directions[i]);
         } else {
-          int j = i-4;
-          Servo servo = hardwareMap.get(Servo.class, "s" + j);
-          servo.scaleRange(0,1);
-          servo.setPosition(directions[i]/2 + 0.5);
+          int j = i - 4;
+          Servo servo = hardwareMap.get(Servo.class, (expansion ? "es" : "s") + j);
+          servo.scaleRange(0, 1);
+          servo.setPosition(directions[i] / 2 + 0.5);
           telemetry.addData(((selectedMotor == i) ? "> Servo " : "Servo ").concat(String.valueOf(j)), directions[i]);
         }
       }
       telemetry.addData((selectedMotor == directions.length) ? "> Step " : "Step ", step);
+      telemetry.addData("Mode", expansion ? "Control hub" : "Expansion hub");
       telemetry.update();
 
       previousInputDown = inputDown;
+      if (gamepad1.x) {
+        for (int i = 0; i < 4; i++) {
+          DcMotor motor = hardwareMap.get(DcMotor.class, "m" + i);
+          motor.setPower(0);
+          DcMotor emotor = hardwareMap.get(DcMotor.class, "em" + i);
+          emotor.setPower(0);
+        }
+        break; //Killswitch
+      }
     }
-
   }
 }

@@ -94,6 +94,10 @@ public class Tank extends LinearOpMode {
             telemetry.addData("Transfer", shooterController.transferPower);
             telemetry.addData("Intake", shooterController.intakePower);
             telemetry.update();
+            
+            if (gamepad1.x) {
+                break; //Killswitch
+            }
         }
     }
 }

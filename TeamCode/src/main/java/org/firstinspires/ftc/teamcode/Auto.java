@@ -14,6 +14,9 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainCon
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+import org.firstinspires.ftc.vision.apriltag.AprilTagLibrary;
+import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 @TeleOp(name = "Auto test")
 public class Auto extends LinearOpMode {
@@ -79,8 +82,8 @@ public class Auto extends LinearOpMode {
     double rangeError;
     double headingError;
 
-    left_drive = hardwareMap.get(DcMotor.class, "left_driveAsDcMotor");
-    right_drive = hardwareMap.get(DcMotor.class, "right_driveAsDcMotor");
+    //left_drive = hardwareMap.get(DcMotor.class, "left_driveAsDcMotor");
+    //right_drive = hardwareMap.get(DcMotor.class, "right_driveAsDcMotor");
 
     // Adjust these numbers to suit your robot.
     // DESIRED_DISTANCE is how close the camera should get to the target in inches.
@@ -160,7 +163,7 @@ public class Auto extends LinearOpMode {
         telemetry.addLine("");
       }
       // If Left Bumper is being pressed, and we have found the desired target, drive to target automatically.
-      if (gamepad1.left_bumper && targetFound) {
+      /*if (gamepad1.left_bumper && targetFound) {
         // Determine heading and range error so we can use them to control the robot automatically.
         rangeError = desiredTag.ftcPose.range - DESIRED_DISTANCE;
         headingError = desiredTag.ftcPose.bearing;
@@ -175,7 +178,7 @@ public class Auto extends LinearOpMode {
         // Reduce turn rate to 25%.
         turn = -gamepad1.right_stick_x / 4;
         telemetry.addData("Manual", "Drive " + JavaUtil.formatNumber(drive, 5, 2) + ", Turn " + JavaUtil.formatNumber(turn, 5, 2));
-      }
+      }*/
       telemetry.update();
       // Apply desired axes motions to the drivetrain.
       moveRobot(drive, turn);
@@ -214,10 +217,13 @@ public class Auto extends LinearOpMode {
   private void initAprilTag() {
     AprilTagProcessor.Builder aprilTagBuilder;
     VisionPortal.Builder visionPortalBuilder;
+    AprilTabLibrary.Builder libraryBuilder = new AprilTabLibrary.Builder();
 
-    // Create the AprilTag processor by using a builder.
-    aprilTagBuilder = new AprilTagProcessor.Builder();
-    aprilTagBuilder.setTagLibrary(AprilTagLibrary.getDecodeTagLibrary());
+    libraryBuilder.addTags(AprilTagGameDatabase.getCurrentGameTagLibrary());
+    libraryBuilder.addTag(0, "follow_sample", 4.3, DistanceUnit.INCH);
+
+    aprilTagBuilder = new AprilTagProcessor.Builder(); 
+    aprilTagBuilder.setTagLibrary(libraryBuilder.build());
     aprilTag = aprilTagBuilder.build();
     // Adjust Image Decimation to trade-off detection-range for detection-rate.
     // e.g. Some typical detection data using a Logitech C920 WebCam

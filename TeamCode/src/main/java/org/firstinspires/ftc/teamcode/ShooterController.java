@@ -50,8 +50,11 @@ public class ShooterController {
         transferDrive.setDirection(DcMotor.Direction.FORWARD);
         
         leftClamp.setDirection(Servo.Direction.FORWARD);
-        rightClamp.setDirection(Servo.Direction.REVERSE);
+        rightClamp.setDirection(Servo.Direction.FORWARD);
         leftClamp.scaleRange(0,1);
+        rightClamp.scaleRange(0,1);
+        
+        opMode.telemetry.addData("Status","Init ShooterController module");
     }
     public void run() {
         if ((last_right_trigger != (opMode.gamepad1.right_trigger > 0)) && (opMode.gamepad1.right_trigger > 0)) {
@@ -83,12 +86,12 @@ public class ShooterController {
         //transfer = System.currentTimeMillis() <= transferTimestamp;
         if (transfer){
             intakeStrength = 1;
-            leftClamp.setPosition(0.7);
-            rightClamp.setPosition(0.7);
+            leftClamp.setPosition(0.725);
+            rightClamp.setPosition(0.275);
         }else{
             intakeStrength = 0.5;
-            leftClamp.setPosition(0.5);
-            rightClamp.setPosition(0.5);
+            leftClamp.setPosition(0.45);
+            rightClamp.setPosition(0.65);
         }
 
         shooterPower = shooter ? 1 : 0;
