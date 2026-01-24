@@ -93,12 +93,17 @@ public class Tank extends LinearOpMode {
             telemetry.addData("Right strafe", right_strafe);
             telemetry.addData("Left mag", left_mag);
             telemetry.addData("Right mag", right_mag);
-            telemetry.addData("Right dir", Math.toDegrees(right_dir));
-            telemetry.addData("Left dir", Math.toDegrees(left_dir));
 
             telemetry.addData("Shoot", shooterController.shooterPower);
             telemetry.addData("Transfer", shooterController.transferPower);
             telemetry.addData("Intake", shooterController.intakePower);
+
+            telemetry.addData((shooterController.usePower?">":"") + "Shooter strength (A/B)", Util.toPercentage(shooterController.shooterStrength));
+            telemetry.addData((shooterController.usePower?"":">") + "Shooter d/s (A/B)", String.valueOf(shooterController.shooterDps)+" degrees/s");
+            telemetry.addData("Shooter velocity left", String.valueOf(Math.round(shooterController.shooterLeftVelocity))+" degrees/s");
+            telemetry.addData("Shooter velocity right", String.valueOf(Math.round(shooterController.shooterRightVelocity))+" degrees/s");
+            telemetry.addData("Shooter power left", Util.toPercentage(shooterController.shooterLeftPower));
+            telemetry.addData("Shooter power right", Util.toPercentage(shooterController.shooterRightPower));
             telemetry.update();
 
             if (gamepad1.x) {

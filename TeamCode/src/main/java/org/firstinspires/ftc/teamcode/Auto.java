@@ -19,31 +19,14 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 @TeleOp(name = "Auto test")
 public class Auto extends LinearOpMode {
 
+  private boolean redTeam = true;
+  private boolean last_a_button = false;
   boolean USE_WEBCAM;
   AprilTagProcessor myAprilTagProcessor;
   Position cameraPosition;
   YawPitchRollAngles cameraOrientation;
   VisionPortal myVisionPortal;
 
-  /**
-   * This OpMode illustrates the basics of AprilTag based localization.
-   *
-   * For an introduction to AprilTags, see the FTC-DOCS link below:
-   * https://ftc-docs.firstinspires.org/en/latest/apriltag/vision_portal/apriltag_intro/apriltag-intro.html
-   *
-   * In this sample, any visible tag ID will be detected and displayed, but only
-   * tags that are included in the default "TagLibrary" will be used to compute the
-   * robot's location and orientation. This default TagLibrary contains the current
-   * Season's AprilTags and a small set of "test Tags" in the high number range.
-   *
-   * When an AprilTag in the TagLibrary is detected, the SDK provides
-   * location and orientation of the robot, relative to the field origin. This
-   * information is provided in the "robotPose" member of the returned "detection".
-   *
-   * To learn about the Field Coordinate System that is defined for
-   * FTC (and used by this OpMode), see the FTC-DOCS link below:
-   * https://ftc-docs.firstinspires.org/en/latest/game_specific_resources/field_coordinate_system/field-coordinate-system.html
-   */
   @Override
   public void runOpMode() {
     USE_WEBCAM = true;
@@ -70,9 +53,17 @@ public class Auto extends LinearOpMode {
     // Initialize AprilTag before waitForStart.
     initAprilTag();
     // Wait for the match to begin.
-    telemetry.addData("DS preview on/off", "3 dots, Camera Stream");
-    telemetry.addData(">", "Touch START to start OpMode");
-    telemetry.update();
+    while (opModeInInit()) {
+      if (!last_a_button && gamepad1.a) {
+        redTeam = !redTeam;
+      }
+      last_a_button = gamepad1.a;
+
+      telemetry.addData("DS preview on/off", "3 dots, Camera Stream");
+      telemetry.addData(">", "Touch START to start OpMode");
+      telemetry.addData("Team", redTeam?"red":"blue");
+      telemetry.update();
+    }
     waitForStart();
     while (opModeIsActive()) {
       telemetryAprilTag();
@@ -127,14 +118,14 @@ public class Auto extends LinearOpMode {
    * Display info (using telemetry) for a recognized AprilTag.
    */
   private void telemetryAprilTag() {
-    List<AprilTagDetection> myAprilTagDetections;
+    List < AprilTagDetection > myAprilTagDetections;
     AprilTagDetection myAprilTagDetection;
 
     // Get a list of AprilTag detections.
     myAprilTagDetections = myAprilTagProcessor.getDetections();
     telemetry.addData("# AprilTags Detected", JavaUtil.listLength(myAprilTagDetections));
     // Iterate through list and call a function to display info for each recognized AprilTag.
-    for (AprilTagDetection myAprilTagDetection_item : myAprilTagDetections) {
+    for (AprilTagDetection myAprilTagDetection_item: myAprilTagDetections) {
       myAprilTagDetection = myAprilTagDetection_item;
       // Display info about the detection.
       telemetry.addLine("");
@@ -166,4 +157,3 @@ public class Auto extends LinearOpMode {
     return true;
   }
 }
-
