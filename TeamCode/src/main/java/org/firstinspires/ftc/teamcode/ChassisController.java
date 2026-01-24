@@ -15,7 +15,9 @@ import java.lang.Math;
 import java.util.Dictionary;
 
 
-/// This class controls the vast majority of chassis behaviour and movement. 
+/// This class controls the vast majority of chassis behaviour and movement.
+/// This and ShooterController used to be part of the opmode themselves, we decided to separate them for a more modular codebase, making it easier to
+/// change configs and code autonomous opmodes later down the line. 
 public class ChassisController {
     private LinearOpMode opMode;
     private double drivePower = 1;
