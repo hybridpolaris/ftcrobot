@@ -1,6 +1,9 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+import com.qualcomm.robotcore.hardware.PIDCoefficients;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -12,7 +15,7 @@ import java.lang.Math;
 import java.util.Dictionary;
 
 
-
+/// This class controls the vast majority of chassis behaviour and movement. 
 public class ChassisController {
     private LinearOpMode opMode;
     private double drivePower = 1;
@@ -27,19 +30,26 @@ public class ChassisController {
     public double backRightPower;
     public double frontLeftPower;
     public double frontRightPower;
+    public static final PIDFCoefficients coefficient = new PIDFCoefficients(0,0,0,0);
     public ChassisController(LinearOpMode _opMode) {
         opMode = _opMode;
     }
+    /// Initial setup. PIDF will be tuned
     public void init() {
-        backLeftDrive  = opMode.hardwareMap.get(DcMotor.class, "m1");
-        backRightDrive = opMode.hardwareMap.get(DcMotor.class, "em1");
-        frontLeftDrive  = opMode.hardwareMap.get(DcMotor.class, "m0");
-        frontRightDrive = opMode.hardwareMap.get(DcMotor.class, "em0");
+        backLeftDrive  = opMode.hardwareMap.get(DcMotorEx.class, "m1");
+        backRightDrive = opMode.hardwareMap.get(DcMotorEx.class, "em1");
+        frontLeftDrive  = opMode.hardwareMap.get(DcMotorEx.class, "m0");
+        frontRightDrive = opMode.hardwareMap.get(DcMotorEx.class, "em0");
         
         backLeftDrive.setDirection(DcMotor.Direction.FORWARD);
-        backRightDrive.setDirection(DcMotor.Direction.FORWARD);
+        backRightDrive.setDirection(DcMotor.Direction.REVERSE);
         frontLeftDrive.setDirection(DcMotor.Direction.FORWARD);
         frontRightDrive.setDirection(DcMotor.Direction.FORWARD);
+        
+        ((DcMotorEx) backLeftDrive).setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficient);
+        ((DcMotorEx) backRightDrive).setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficient);
+        ((DcMotorEx) frontLeftDrive).setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficient);
+        ((DcMotorEx) frontRightDrive).setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficient);
 
         backLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -48,6 +58,7 @@ public class ChassisController {
         
         opMode.telemetry.addData("Status","Init ChassisControlller module");
     }
+    /// Takes movement instructions and control the motors accordingly
     public void run(double moveAngle, double moveMagnitude, double turnPower) {
         if (Double.isNaN(moveAngle)){
             moveAngle = 0;
@@ -55,8 +66,8 @@ public class ChassisController {
         }
         backLeftPower = (Math.cos(moveAngle) - Math.sin(moveAngle)) * moveMagnitude;
         backRightPower = (Math.cos(moveAngle) + Math.sin(moveAngle)) * moveMagnitude;
-        frontLeftPower = (Math.cos(moveAngle) - Math.sin(moveAngle)) * moveMagnitude;
-        frontRightPower = (Math.cos(moveAngle) + Math.sin(moveAngle)) * moveMagnitude;
+        frontLeftPower = (Math.cos(moveAngle) + Math.sin(moveAngle)) * moveMagnitude;
+        frontRightPower = (Math.cos(moveAngle) - Math.sin(moveAngle)) * moveMagnitude;
 
         backLeftPower += turnPower;
         frontLeftPower += turnPower;
@@ -71,10 +82,10 @@ public class ChassisController {
         frontRightPower /= magnitude;
 
         
-        //backLeftDrive.setPower(backLeftPower);
-        //frontLeftDrive.setPower(frontLeftPower);
+        backLeftDrive.setPower(backLeftPower);
+        frontLeftDrive.setPower(frontLeftPower);
 
-        //backRightDrive.setPower(backRightPower);
-        //frontRightDrive.setPower(frontRightPower);
+        backRightDrive.setPower(backRightPower);
+        frontRightDrive.setPower(frontRightPower);
     }
 }

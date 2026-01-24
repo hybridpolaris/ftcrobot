@@ -13,6 +13,7 @@ import java.util.Vector;
 
 
 @TeleOp(name="Joystick controls")
+//Alternative TeleOp mode
 
 public class Joystick extends LinearOpMode {
 
@@ -20,9 +21,7 @@ public class Joystick extends LinearOpMode {
     private ChassisController chassisController = new ChassisController(this);
     @Override
     public void runOpMode() {
-
         waitForStart();
-        
         
         shooterController.init();
         chassisController.init();
@@ -48,6 +47,8 @@ public class Joystick extends LinearOpMode {
             telemetry.addData("backleft", chassisController.backLeftPower);
             telemetry.addData("frontright", chassisController.frontRightPower);
             telemetry.addData("frontleft", chassisController.frontLeftPower);
+            telemetry.addData("revving", shooterController.revving);
+            telemetry.addData("shooting", shooterController.shooting);
             telemetry.update();
 
             if (gamepad1.x) {
