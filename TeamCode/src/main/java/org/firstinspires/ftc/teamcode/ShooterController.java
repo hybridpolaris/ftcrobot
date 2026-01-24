@@ -18,58 +18,69 @@ import java.util.Dictionary;
 public class ShooterController {
     private LinearOpMode opMode;
 
-    private DcMotor shooterDriveLeft = null;
-    private DcMotor shooterDriveRight = null;
-    private DcMotor intakeDrive = null;
-    private DcMotor transferDrive = null;
+    // The motors and servos
+    private DcMotor shooterMotorLeft = null;
+    private DcMotor shooterMotorRight = null;
+    private DcMotor intakeMotor = null;
+    private DcMotor transferMotor = null;
     private Servo rightClamp = null;
     private Servo leftClamp = null;
 
     private double intakeDir = 0;
     private boolean shooter = false;
+    
     public boolean revving = false;
     public boolean shooting = false;
 
+    // Debounce, to force a full press of bumpers and triggers
     private boolean last_right_bumper = false;
     private boolean last_left_pair = false;
     private boolean last_a = false;
     private boolean last_b = false;
     private boolean last_y = false;
-    private double intakeStrength = 1;
 
+    // Initial values 
+    private double intakeStrength = 1;
     public double shooterStrength = 1;
     public double shooterDps = 300;
 
+    //Whether to use power instead of degrees/s
     public boolean usePower = false;
+
+    // Variables that directly influences the motors
     public double shooterPower;
     public double shooterOutputDps;
     public double intakePower;
     public double transferPower;
 
+    // Variables purely for telemetry and tracking purposes, will be read and displayed by opmodes.
     public double shooterLeftPower;
     public double shooterRightPower;
     public double shooterLeftVelocity;
     public double shooterRightVelocity;
+
+    // The PID coefficients to be tuned.
     public static final PIDFCoefficients coefficient = new PIDFCoefficients(30, 0, 0, 0);
 
     public ShooterController(LinearOpMode _opMode) {
         opMode = _opMode;
     }
     public void init() {
-        shooterDriveLeft = opMode.hardwareMap.get(DcMotor.class, "m3");
-        shooterDriveRight = opMode.hardwareMap.get(DcMotor.class, "em3");
-        intakeDrive = opMode.hardwareMap.get(DcMotor.class, "em2");
-        transferDrive = opMode.hardwareMap.get(DcMotor.class, "m2");
+        // Initial motor configs
+        shooterMotorLeft = opMode.hardwareMap.get(DcMotor.class, "m3");
+        shooterMotorRight = opMode.hardwareMap.get(DcMotor.class, "em3");
+        intakeMotor = opMode.hardwareMap.get(DcMotor.class, "em2");
+        transferMotor = opMode.hardwareMap.get(DcMotor.class, "m2");
         leftClamp = opMode.hardwareMap.get(Servo.class, "s0");
         rightClamp = opMode.hardwareMap.get(Servo.class, "es0");
 
-        shooterDriveLeft.setDirection(DcMotor.Direction.FORWARD);
-        shooterDriveRight.setDirection(DcMotor.Direction.REVERSE);
+        shooterMotorLeft.setDirection(DcMotor.Direction.FORWARD);
+        shooterMotorRight.setDirection(DcMotor.Direction.REVERSE);
         intakeDrive.setDirection(DcMotor.Direction.FORWARD);
         transferDrive.setDirection(DcMotor.Direction.FORWARD);
 
-        ((DcMotorEx) shooterDriveLeft).setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficient);
-        ((DcMotorEx) shooterDriveRight).setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficient);
+        ((DcMotorEx) shooterMotorLeft).setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficient);
+        ((DcMotorEx) shooterMotorRight).setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficient);
 
         leftClamp.setDirection(Servo.Direction.FORWARD);
         rightClamp.setDirection(Servo.Direction.FORWARD);
@@ -79,6 +90,7 @@ public class ShooterController {
         opMode.telemetry.addData("Status", "Init ShooterController module");
     }
     public void run() {
+        // Adjust the strength of the shooter. Mainly for calibration purposes
         if (opMode.gamepad1.a && !last_a) {
             if (usePower) {
                 shooterStrength += 0.05;
@@ -93,10 +105,12 @@ public class ShooterController {
                 shooterDps -= 25;
             }
         }
+        // Toggles between using power and degrees/s
         if (opMode.gamepad1.y && !last_y) {
             usePower = !usePower;
         }
         shooterStrength = Range.clip(shooterStrength, 0, 1);
+        // Debounce
         last_a = opMode.gamepad1.a;
         last_b = opMode.gamepad1.b;
         last_y = opMode.gamepad1.y;
@@ -134,18 +148,21 @@ public class ShooterController {
         }
 
         if (revving && !shooting) {
+            // Revving mode
             shooter = true;
             leftClamp.setPosition(0.725);
             rightClamp.setPosition(0.275);
             intakeStrength = 0.3;
             transferPower = -1;
         } else if (shooting) {
+            // Shooting mode
             shooter = true;
             leftClamp.setPosition(0.725);
             rightClamp.setPosition(0.275);
             intakeStrength = 1;
             transferPower = 1;
         } else {
+            // Idle mode
             leftClamp.setPosition(0.45);
             rightClamp.setPosition(0.55);
             intakeStrength = 1;
@@ -153,25 +170,27 @@ public class ShooterController {
             shooter = false;
         }
 
+        // Scale the final intake power by the direction.
         intakePower = intakeStrength * intakeDir;
         transferPower = transferPower;
 
         if (usePower) {
             shooterPower = shooter ? shooterStrength : 0;
-            shooterDriveLeft.setPower(shooterPower);
-            shooterDriveRight.setPower(shooterPower * 0.955);
+            shooterMotorLeft.setPower(shooterPower);
+            shooterMotorRight.setPower(shooterPower * 0.955);
         } else {
             shooterOutputDps = shooter ? shooterDps : 0;
-            ((DcMotorEx)shooterDriveLeft).setVelocity(shooterOutputDps,AngleUnit.DEGREES);
-            ((DcMotorEx)shooterDriveRight).setVelocity(shooterOutputDps,AngleUnit.DEGREES);
+            ((DcMotorEx)shooterMotorLeft).setVelocity(shooterOutputDps,AngleUnit.DEGREES);
+            ((DcMotorEx)shooterMotorRight).setVelocity(shooterOutputDps,AngleUnit.DEGREES);
         }
 
         intakeDrive.setPower(intakePower);
         transferDrive.setPower(transferPower);
 
-        shooterLeftVelocity = ((DcMotorEx) shooterDriveLeft).getVelocity(AngleUnit.DEGREES);
-        shooterRightVelocity = ((DcMotorEx) shooterDriveRight).getVelocity(AngleUnit.DEGREES);
-        shooterLeftPower = shooterDriveLeft.getPower();
-        shooterRightPower = shooterDriveRight.getPower();
+        // Set tracking variables to be read by opmodes
+        shooterLeftVelocity = ((DcMotorEx) shooterMotorLeft).getVelocity(AngleUnit.DEGREES);
+        shooterRightVelocity = ((DcMotorEx) shooterMotorRight).getVelocity(AngleUnit.DEGREES);
+        shooterLeftPower = shooterMotorLeft.getPower();
+        shooterRightPower = shooterMotorRight.getPower();
     }
 }

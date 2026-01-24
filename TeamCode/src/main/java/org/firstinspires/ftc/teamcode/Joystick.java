@@ -40,8 +40,8 @@ public class Joystick extends LinearOpMode {
             shooterController.run();
             chassisController.run(driveAngle, driveMagnitude, turn);
 
-            telemetry.addData("Drive angle", Math.toDegrees(driveAngle));
-            telemetry.addData("Drive power", driveMagnitude);
+            telemetry.addData("Motor angle", Math.toDegrees(driveAngle));
+            telemetry.addData("Motor power", driveMagnitude);
             telemetry.addData("Turn", turn);
             telemetry.addData("backright", chassisController.backRightPower);
             telemetry.addData("backleft", chassisController.backLeftPower);

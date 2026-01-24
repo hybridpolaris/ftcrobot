@@ -19,13 +19,16 @@ import java.util.Dictionary;
 /// change configs and code autonomous opmodes later down the line. 
 public class ChassisController {
     private LinearOpMode opMode;
+
+    // How strong the motors are
     private double drivePower = 1;
+    // How much turn interacts with movement inputs if both are pressed. Higher turn weights will take precedent over lateral movement.
     private double turnWeight = 1;
 
-    private DcMotor backLeftDrive = null;
-    private DcMotor backRightDrive = null;
-    private DcMotor frontLeftDrive = null;
-    private DcMotor frontRightDrive = null;
+    private DcMotor backLeftMotor = null;
+    private DcMotor backRightMotor = null;
+    private DcMotor frontLeftMotor = null;
+    private DcMotor frontRightMotor = null;
 
     public double backLeftPower;
     public double backRightPower;
@@ -35,22 +38,22 @@ public class ChassisController {
     public ChassisController(LinearOpMode _opMode) {
         opMode = _opMode;
     }
-    /// Initial setup. PIDF will be tuned
     public void init() {
-        backLeftDrive  = opMode.hardwareMap.get(DcMotorEx.class, "m1");
-        backRightDrive = opMode.hardwareMap.get(DcMotorEx.class, "em1");
-        frontLeftDrive  = opMode.hardwareMap.get(DcMotorEx.class, "m0");
-        frontRightDrive = opMode.hardwareMap.get(DcMotorEx.class, "em0");
+        /// Initial setup for the motors. PIDF will be tuned
+        backLeftMotor  = opMode.hardwareMap.get(DcMotorEx.class, "m1");
+        backRightMotor = opMode.hardwareMap.get(DcMotorEx.class, "em1");
+        frontLeftMotor  = opMode.hardwareMap.get(DcMotorEx.class, "m0");
+        frontRightMotor = opMode.hardwareMap.get(DcMotorEx.class, "em0");
         
         backLeftDrive.setDirection(DcMotor.Direction.FORWARD);
         backRightDrive.setDirection(DcMotor.Direction.REVERSE);
         frontLeftDrive.setDirection(DcMotor.Direction.FORWARD);
         frontRightDrive.setDirection(DcMotor.Direction.FORWARD);
         
-        ((DcMotorEx) backLeftDrive).setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficient);
-        ((DcMotorEx) backRightDrive).setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficient);
-        ((DcMotorEx) frontLeftDrive).setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficient);
-        ((DcMotorEx) frontRightDrive).setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficient);
+        ((DcMotorEx) backLeftMotor).setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficient);
+        ((DcMotorEx) backRightMotor).setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficient);
+        ((DcMotorEx) frontLeftMotor).setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficient);
+        ((DcMotorEx) frontRightMotor).setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficient);
 
         backLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -59,12 +62,13 @@ public class ChassisController {
         
         opMode.telemetry.addData("Status","Init ChassisControlller module");
     }
-    /// Takes movement instructions and control the motors accordingly
     public void run(double moveAngle, double moveMagnitude, double turnPower) {
+        // Accounts for a NaN move angle as a result of atan(0,0)
         if (Double.isNaN(moveAngle)){
             moveAngle = 0;
             moveMagnitude = 0;
         }
+        // Simple trig, I hope
         backLeftPower = (Math.cos(moveAngle) - Math.sin(moveAngle)) * moveMagnitude;
         backRightPower = (Math.cos(moveAngle) + Math.sin(moveAngle)) * moveMagnitude;
         frontLeftPower = (Math.cos(moveAngle) + Math.sin(moveAngle)) * moveMagnitude;
@@ -75,6 +79,7 @@ public class ChassisController {
         backRightPower -= turnPower;
         frontRightPower -= turnPower;
 
+        // Due to naively applying turn power to motor, this block scales all motor down so that the highest powered motor is 1. Also applies drivePower.
         double magnitude = Math.max(Math.max(Math.max(Math.abs(backLeftPower), Math.abs(backRightPower)), Math.abs(frontLeftPower)), Math.abs(frontRightPower)) / drivePower;
 
         backLeftPower /= magnitude;
