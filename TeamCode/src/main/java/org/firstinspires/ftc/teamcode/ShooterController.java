@@ -60,7 +60,7 @@ public class ShooterController {
     public double shooterRightVelocity;
 
     // The PID coefficients to be tuned.
-    public static final PIDFCoefficients coefficient = new PIDFCoefficients(30, 0, 0, 0);
+    public static PIDFCoefficients coefficient = new PIDFCoefficients(10, 1, 0, 0);
 
     public ShooterController(LinearOpMode _opMode) {
         opMode = _opMode;
@@ -76,8 +76,8 @@ public class ShooterController {
 
         shooterMotorLeft.setDirection(DcMotor.Direction.FORWARD);
         shooterMotorRight.setDirection(DcMotor.Direction.REVERSE);
-        intakeDrive.setDirection(DcMotor.Direction.FORWARD);
-        transferDrive.setDirection(DcMotor.Direction.FORWARD);
+        intakeMotor.setDirection(DcMotor.Direction.FORWARD);
+        transferMotor.setDirection(DcMotor.Direction.FORWARD);
 
         ((DcMotorEx) shooterMotorLeft).setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficient);
         ((DcMotorEx) shooterMotorRight).setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficient);
@@ -133,7 +133,7 @@ public class ShooterController {
                     revving = false;
                 } else {
                     revving = true;
-                    intakeDir = 1;
+                    //intakeDir = 1;
                 }
             }
         }
@@ -184,13 +184,14 @@ public class ShooterController {
             ((DcMotorEx)shooterMotorRight).setVelocity(shooterOutputDps,AngleUnit.DEGREES);
         }
 
-        intakeDrive.setPower(intakePower);
-        transferDrive.setPower(transferPower);
+        intakeMotor.setPower(intakePower);
+        transferMotor.setPower(transferPower);
 
         // Set tracking variables to be read by opmodes
         shooterLeftVelocity = ((DcMotorEx) shooterMotorLeft).getVelocity(AngleUnit.DEGREES);
         shooterRightVelocity = ((DcMotorEx) shooterMotorRight).getVelocity(AngleUnit.DEGREES);
         shooterLeftPower = shooterMotorLeft.getPower();
         shooterRightPower = shooterMotorRight.getPower();
+        coefficient = ((DcMotorEx)shooterMotorRight).getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 }

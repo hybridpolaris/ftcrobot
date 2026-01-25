@@ -45,20 +45,20 @@ public class ChassisController {
         frontLeftMotor  = opMode.hardwareMap.get(DcMotorEx.class, "m0");
         frontRightMotor = opMode.hardwareMap.get(DcMotorEx.class, "em0");
         
-        backLeftDrive.setDirection(DcMotor.Direction.FORWARD);
-        backRightDrive.setDirection(DcMotor.Direction.REVERSE);
-        frontLeftDrive.setDirection(DcMotor.Direction.FORWARD);
-        frontRightDrive.setDirection(DcMotor.Direction.FORWARD);
+        backLeftMotor.setDirection(DcMotor.Direction.FORWARD);
+        backRightMotor.setDirection(DcMotor.Direction.REVERSE);
+        frontLeftMotor.setDirection(DcMotor.Direction.FORWARD);
+        frontRightMotor.setDirection(DcMotor.Direction.FORWARD);
         
         ((DcMotorEx) backLeftMotor).setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficient);
         ((DcMotorEx) backRightMotor).setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficient);
         ((DcMotorEx) frontLeftMotor).setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficient);
         ((DcMotorEx) frontRightMotor).setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficient);
 
-        backLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         
         opMode.telemetry.addData("Status","Init ChassisControlller module");
     }
@@ -88,10 +88,10 @@ public class ChassisController {
         frontRightPower /= magnitude;
 
         
-        backLeftDrive.setPower(backLeftPower);
-        frontLeftDrive.setPower(frontLeftPower);
+        backLeftMotor.setPower(backLeftPower);
+        frontLeftMotor.setPower(frontLeftPower);
 
-        backRightDrive.setPower(backRightPower);
-        frontRightDrive.setPower(frontRightPower);
+        backRightMotor.setPower(backRightPower);
+        frontRightMotor.setPower(frontRightPower);
     }
 }

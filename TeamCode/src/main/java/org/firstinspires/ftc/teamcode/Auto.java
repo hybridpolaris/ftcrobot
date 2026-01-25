@@ -16,20 +16,28 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagLibrary;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
+@Config
 @TeleOp(name = "Auto test")
 public class Auto extends LinearOpMode {
-
-  private boolean redTeam = true;
+  public enum Team {RED, BLUE}
+  public static Team team = Team.RED;
+  private boolean redTeam = team == Team.RED;
   private boolean last_a_button = false;
-  boolean USE_WEBCAM;
+  private ChassisController chassisController = new ChassisController(this);
+
+  private double turnRate = 90;
+  private double moveSpeed = 5;
+  // In degrees per second, inch per second
+  
   AprilTagProcessor myAprilTagProcessor;
   Position cameraPosition;
   YawPitchRollAngles cameraOrientation;
+  double robotAngle = 0;
+  Vector robotPosition = new Vector();
   VisionPortal myVisionPortal;
 
   @Override
   public void runOpMode() {
-    USE_WEBCAM = true;
     // Variables to store the position and orientation of the camera on the robot. Setting these
     // values requires a definition of the axes of the camera and robot:
     // Camera axes:
@@ -52,6 +60,7 @@ public class Auto extends LinearOpMode {
     cameraOrientation = new YawPitchRollAngles(AngleUnit.DEGREES, 0, -90, 0, 0);
     // Initialize AprilTag before waitForStart.
     initAprilTag();
+    chassisController.init();
     // Wait for the match to begin.
     while (opModeInInit()) {
       if (!last_a_button && gamepad1.a) {
@@ -61,27 +70,33 @@ public class Auto extends LinearOpMode {
 
       telemetry.addData("DS preview on/off", "3 dots, Camera Stream");
       telemetry.addData(">", "Touch START to start OpMode");
-      telemetry.addData("Team", redTeam?"red":"blue");
+      telemetry.addData("Team", redTeam ? "red" : "blue");
       telemetry.update();
     }
     waitForStart();
     while (opModeIsActive()) {
-      telemetryAprilTag();
-      // Push telemetry to the Driver Station.
-      telemetry.update();
-      if (gamepad1.dpad_down) {
-        // Temporarily stop the streaming session. This can save CPU
-        // resources, with the ability to resume quickly when needed.
-        myVisionPortal.stopStreaming();
-      } else if (gamepad1.dpad_up) {
-        // Resume the streaming session if previously stopped.
-        myVisionPortal.resumeStreaming();
+      getPoseEstimation();
+      double targetAngle = 0;
+      Vector targetPosition = new Vector(0,0);
+      
+      if (gamepad1.a){
+        telemetry.addData("Auto", "Getting on target");
+        chassisController.run(0, 0, Math.min(FoxUtil.angleDiff(robotAngle, targetAngle) / turnRate, 1));
       }
-      // Share the CPU.
-      sleep(20);
+      telemetry.update();
+
+      double x_control = gamepad1.left_stick_x + ((gamepad1.dpad_right ? 1 : 0) - (gamepad1.dpad_left ? 1 : 0));
+      double y_control = -gamepad1.left_stick_y + ((gamepad1.dpad_up ? 1 : 0) - (gamepad1.dpad_down ? 1 : 0));
+      double turn = gamepad1.right_stick_x;
+
+      double driveAngle = Math.atan2(x_control, y_control);
+      double driveMagnitude = Math.sqrt(Math.pow(x_control, 2) + Math.pow(y_control, 2));
+
+      chassisController.run(driveAngle, driveMagnitude, turn);
     }
   }
 
+  
   /**
    * Initialize AprilTag Detection.
    */
@@ -91,7 +106,6 @@ public class Auto extends LinearOpMode {
     AprilTagLibrary.Builder libraryBuilder = new AprilTagLibrary.Builder();
 
     libraryBuilder.addTags(AprilTagGameDatabase.getCurrentGameTagLibrary());
-    libraryBuilder.addTag(0, "follow_sample", 4.3, DistanceUnit.INCH);
 
 
     myAprilTagProcessorBuilder = new AprilTagProcessor.Builder();
@@ -101,50 +115,38 @@ public class Auto extends LinearOpMode {
     myAprilTagProcessor = myAprilTagProcessorBuilder.build();
 
     myVisionPortalBuilder = new VisionPortal.Builder();
-    if (USE_WEBCAM) {
-      // Use a webcam.
-      myVisionPortalBuilder.setCamera(hardwareMap.get(WebcamName.class, "camera"));
-    } else {
-      // Use the device's back camera.
-      myVisionPortalBuilder.setCamera(BuiltinCameraDirection.BACK);
-    }
-    // Add myAprilTagProcessor to the VisionPortal.Builder.
+    myVisionPortalBuilder.setCamera(hardwareMap.get(WebcamName.class, "camera"));
     myVisionPortalBuilder.addProcessor(myAprilTagProcessor);
-    // Create a VisionPortal by calling build.
     myVisionPortal = myVisionPortalBuilder.build();
   }
 
   /**
    * Display info (using telemetry) for a recognized AprilTag.
    */
-  private void telemetryAprilTag() {
-    List < AprilTagDetection > myAprilTagDetections;
-    AprilTagDetection myAprilTagDetection;
+  private void getPoseEstimation() {
+    List <AprilTagDetection> detectedAprilTags;
 
-    // Get a list of AprilTag detections.
-    myAprilTagDetections = myAprilTagProcessor.getDetections();
-    telemetry.addData("# AprilTags Detected", JavaUtil.listLength(myAprilTagDetections));
+    detectedAprilTags = myAprilTagProcessor.getDetections();
+    telemetry.addData("# AprilTags Detected", JavaUtil.listLength(detectedAprilTags));
     // Iterate through list and call a function to display info for each recognized AprilTag.
-    for (AprilTagDetection myAprilTagDetection_item: myAprilTagDetections) {
-      myAprilTagDetection = myAprilTagDetection_item;
+    for (AprilTagDetection aprilTag: detectedAprilTags) {
       // Display info about the detection.
       telemetry.addLine("");
-      if (myAprilTagDetection.metadata != null) {
-        telemetry.addLine("==== (ID " + myAprilTagDetection.id + ") " + myAprilTagDetection.metadata.name);
+      if (aprilTag.metadata != null) {
+        telemetry.addLine("==== (ID " + aprilTag.id + ") " + aprilTag.metadata.name);
         // Only use tags that don't have Obelisk in them since Obelisk tags don't have valid location data
-        if (!contains(myAprilTagDetection.metadata.name, "Obelisk")) {
-          telemetry.addLine("XYZ " + JavaUtil.formatNumber(myAprilTagDetection.robotPose.getPosition().x, 6, 1) + " " + JavaUtil.formatNumber(myAprilTagDetection.robotPose.getPosition().y, 6, 1) + " " + JavaUtil.formatNumber(myAprilTagDetection.robotPose.getPosition().z, 6, 1) + "  (inch)");
-          telemetry.addLine("PRY " + JavaUtil.formatNumber(myAprilTagDetection.robotPose.getOrientation().getPitch(), 6, 1) + " " + JavaUtil.formatNumber(myAprilTagDetection.robotPose.getOrientation().getRoll(), 6, 1) + " " + JavaUtil.formatNumber(myAprilTagDetection.robotPose.getOrientation().getYaw(), 6, 1) + "  (deg)");
+        if (!contains(aprilTag.metadata.name, "Obelisk")) {
+          robotAngle = aprilTag.robotPose.getOrientation().getYaw();
+          robotPosition = new Vector(aprilTag.robotPose.getPosition().x,aprilTag.robotPose.getPosition().y);
+
+          telemetry.addLine("XYZ " + JavaUtil.formatNumber(aprilTag.robotPose.getPosition().x, 6, 1) + " " + JavaUtil.formatNumber(aprilTag.robotPose.getPosition().y, 6, 1) + " " + JavaUtil.formatNumber(aprilTag.robotPose.getPosition().z, 6, 1) + "  (inch)");
+          telemetry.addLine("PYR " + JavaUtil.formatNumber(aprilTag.robotPose.getOrientation().getPitch(), 6, 1) + " " + JavaUtil.formatNumber(aprilTag.robotPose.getOrientation().getYaw(), 6, 1) + " " + JavaUtil.formatNumber(aprilTag.robotPose.getOrientation().getRoll(), 6, 1) + "  (deg)");
         }
       } else {
-        telemetry.addLine("==== (ID " + myAprilTagDetection.id + ") Unknown");
-        telemetry.addLine("Center " + JavaUtil.formatNumber(myAprilTagDetection.center.x, 6, 0) + "" + JavaUtil.formatNumber(myAprilTagDetection.center.y, 6, 0) + " (pixels)");
+        telemetry.addLine("==== (ID " + aprilTag.id + ") Unknown");
+        telemetry.addLine("Center " + JavaUtil.formatNumber(aprilTag.center.x, 6, 0) + "" + JavaUtil.formatNumber(aprilTag.center.y, 6, 0) + " (pixels)");
       }
     }
-    telemetry.addLine("");
-    telemetry.addLine("key:");
-    telemetry.addLine("XYZ = X (Right), Y (Forward), Z (Up) dist.");
-    telemetry.addLine("PRY = Pitch, Roll & Yaw (XYZ Rotation)");
   }
 
   /**

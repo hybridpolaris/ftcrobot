@@ -81,7 +81,8 @@ public class AdvancedMotorTestExpanded extends LinearOpMode {
         }
       }
       telemetry.addData((selectedMotor == directions.length) ? "> Step " : "Step ", step);
-      telemetry.addData("Mode", expansion ? "Control hub" : "Expansion hub");
+      telemetry.addData("Mode", expansion ? "Expansion hub" : "Control hub");
+      telemetry.addData("Controls", "Dpad < > to change values, v ^ to select, A to change mode");
       telemetry.update();
 
       previousInputDown = inputDown;

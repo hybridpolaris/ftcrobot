@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.robotcore.util.Util;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -71,11 +72,11 @@ public class Tank extends LinearOpMode {
             backRightPower = Range.clip(backRightPower, -1.0, 1.0);
             frontRightPower = Range.clip(frontRightPower, -1.0, 1.0);
 
-            backLeftDrive.setPower(backLeftPower * drivePower);
-            frontLeftDrive.setPower(frontLeftPower * drivePower);
+            backLeftMotor.setPower(backLeftPower * drivePower);
+            frontLeftMotor.setPower(frontLeftPower * drivePower);
 
-            backRightDrive.setPower(backRightPower * drivePower);
-            frontRightDrive.setPower(frontRightPower * drivePower);
+            backRightMotor.setPower(backRightPower * drivePower);
+            frontRightMotor.setPower(frontRightPower * drivePower);
 
             if (gamepad1.dpad_right || gamepad1.dpad_down || gamepad1.dpad_left || gamepad1.dpad_up) {
                 // Dpad override, uses code from joystick for diagonal movement. Not called if no gamepad inputs are made.
@@ -102,12 +103,13 @@ public class Tank extends LinearOpMode {
             telemetry.addData("Intake", shooterController.intakePower);
 
             // Tracks shooter variables and motor speed. Also shows which mode is selected(power or degrees/s)
-            telemetry.addData((shooterController.usePower?">":"") + "Shooter strength (A/B)", Util.toPercentage(shooterController.shooterStrength));
+            telemetry.addData((shooterController.usePower?">":"") + "Shooter strength (A/B)", FoxUtil.toPercentage(shooterController.shooterStrength));
             telemetry.addData((shooterController.usePower?"":">") + "Shooter d/s (A/B)", String.valueOf(shooterController.shooterDps)+" degrees/s");
             telemetry.addData("Shooter velocity left", String.valueOf(Math.round(shooterController.shooterLeftVelocity))+" degrees/s");
             telemetry.addData("Shooter velocity right", String.valueOf(Math.round(shooterController.shooterRightVelocity))+" degrees/s");
-            telemetry.addData("Shooter power left", Util.toPercentage(shooterController.shooterLeftPower));
-            telemetry.addData("Shooter power right", Util.toPercentage(shooterController.shooterRightPower));
+            telemetry.addData("Shooter power left", FoxUtil.toPercentage(shooterController.shooterLeftPower));
+            telemetry.addData("Shooter power right", FoxUtil.toPercentage(shooterController.shooterRightPower));
+            telemetry.addData("PIDF", String.valueOf(shooterController.coefficient.p) + " " + String.valueOf(shooterController.coefficient.i) + " " + String.valueOf(shooterController.coefficient.d) + " " + String.valueOf(shooterController.coefficient.f));
             telemetry.update();
 
             if (gamepad1.x) {
