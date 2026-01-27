@@ -74,8 +74,8 @@ public class ShooterController {
         leftClamp = opMode.hardwareMap.get(Servo.class, "s0");
         rightClamp = opMode.hardwareMap.get(Servo.class, "es0");
 
-        shooterMotorLeft.setDirection(DcMotor.Direction.FORWARD);
-        shooterMotorRight.setDirection(DcMotor.Direction.REVERSE);
+        shooterMotorLeft.setDirection(DcMotor.Direction.REVERSE);
+        shooterMotorRight.setDirection(DcMotor.Direction.FORWARD);
         intakeMotor.setDirection(DcMotor.Direction.FORWARD);
         transferMotor.setDirection(DcMotor.Direction.FORWARD);
 
@@ -95,14 +95,14 @@ public class ShooterController {
             if (usePower) {
                 shooterStrength += 0.05;
             } else {
-                shooterDps += 25;
+                shooterDps += 10;
             }
         }
         if (opMode.gamepad1.b && !last_b) {
             if (usePower) {
                 shooterStrength -= 0.05;
             } else {
-                shooterDps -= 25;
+                shooterDps -= 10;
             }
         }
         // Toggles between using power and degrees/s
@@ -152,7 +152,7 @@ public class ShooterController {
             shooter = true;
             leftClamp.setPosition(0.725);
             rightClamp.setPosition(0.275);
-            intakeStrength = 0.3;
+            intakeStrength = 1; //0.3;
             transferPower = -1;
         } else if (shooting) {
             // Shooting mode
