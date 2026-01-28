@@ -60,7 +60,7 @@ public class ShooterController {
     public double shooterRightVelocity;
 
     // The PID coefficients to be tuned.
-    public static PIDFCoefficients coefficient = new PIDFCoefficients(10, 1, 0, 0);
+    public static PIDFCoefficients coefficient = new PIDFCoefficients(20, 1, 0.1, 0.5);
 
     public ShooterController(LinearOpMode _opMode) {
         opMode = _opMode;
@@ -79,6 +79,12 @@ public class ShooterController {
         intakeMotor.setDirection(DcMotor.Direction.FORWARD);
         transferMotor.setDirection(DcMotor.Direction.FORWARD);
 
+        shooterMotorLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shooterMotorRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        
+        ((DcMotorEx) shooterMotorLeft).setMotorEnable();
+        ((DcMotorEx) shooterMotorRight).setMotorEnable();
+        
         ((DcMotorEx) shooterMotorLeft).setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficient);
         ((DcMotorEx) shooterMotorRight).setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficient);
 
@@ -88,6 +94,55 @@ public class ShooterController {
         rightClamp.scaleRange(0, 1);
 
         opMode.telemetry.addData("Status", "Init ShooterController module");
+    }
+    public void setShooterVelocity(double vel){
+        ((DcMotorEx)shooterMotorLeft).setVelocity(vel,AngleUnit.DEGREES);
+        ((DcMotorEx)shooterMotorRight).setVelocity(vel,AngleUnit.DEGREES);
+    }
+    public void setIntakePower(double power){
+        intakeMotor.setPower(power);
+    }
+    public void setTransferPower(double power){
+        transferMotor.setPower(power);
+    }
+    public void toggleClamp(boolean open){
+        if (open){
+            leftClamp.setPosition(0.15);
+            rightClamp.setPosition(0.75);
+        } else {
+            leftClamp.setPosition(0.3);
+            rightClamp.setPosition(0.6);
+        }
+    }
+    public void setIdle(){
+        toggleClamp(false);
+        setTransferPower(-1);
+        setIntakePower(1);
+        setShooterVelocity(0);
+    }
+    public void setWeakIdle(){
+        toggleClamp(false);
+        setTransferPower(-1);
+        setIntakePower(0.3);
+        setShooterVelocity(0);
+    }
+    public void setRevving(double vel){
+        toggleClamp(true);
+        setTransferPower(-1);
+        setIntakePower(0.3);
+        setShooterVelocity(vel);
+    }
+    public void setShooting(double vel){
+        toggleClamp(true);
+        setTransferPower(1);
+        setIntakePower(1);
+        setShooterVelocity(vel);
+    }
+    public void stopAll(){
+        toggleClamp(false);
+        setTransferPower(0);
+        setIntakePower(0);
+        setShooterVelocity(0);
     }
     public void run() {
         // Adjust the strength of the shooter. Mainly for calibration purposes
@@ -107,7 +162,7 @@ public class ShooterController {
         }
         // Toggles between using power and degrees/s
         if (opMode.gamepad1.y && !last_y) {
-            usePower = !usePower;
+            //usePower = !usePower;
         }
         shooterStrength = Range.clip(shooterStrength, 0, 1);
         // Debounce
@@ -133,7 +188,7 @@ public class ShooterController {
                     revving = false;
                 } else {
                     revving = true;
-                    //intakeDir = 1;
+                    intakeDir = 1;
                 }
             }
         }
@@ -150,22 +205,22 @@ public class ShooterController {
         if (revving && !shooting) {
             // Revving mode
             shooter = true;
-            leftClamp.setPosition(0.725);
-            rightClamp.setPosition(0.275);
-            intakeStrength = 1; //0.3;
+            leftClamp.setPosition(0.15);
+            rightClamp.setPosition(0.75);
+            intakeStrength = 0.3;
             transferPower = -1;
         } else if (shooting) {
             // Shooting mode
             shooter = true;
-            leftClamp.setPosition(0.725);
-            rightClamp.setPosition(0.275);
-            intakeStrength = 1;
+            leftClamp.setPosition(0.15);
+            rightClamp.setPosition(0.75);
+            intakeStrength = 0.8;
             transferPower = 1;
         } else {
             // Idle mode
-            leftClamp.setPosition(0.45);
-            rightClamp.setPosition(0.55);
-            intakeStrength = 1;
+            leftClamp.setPosition(0.33);
+            rightClamp.setPosition(0.57);
+            intakeStrength = 0.8;
             transferPower = 0;
             shooter = false;
         }

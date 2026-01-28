@@ -43,12 +43,20 @@ public class Joystick extends LinearOpMode {
             telemetry.addData("Motor angle", Math.toDegrees(driveAngle));
             telemetry.addData("Motor power", driveMagnitude);
             telemetry.addData("Turn", turn);
+            telemetry.addData("revving", shooterController.revving);
+            telemetry.addData("shooting", shooterController.shooting);
+            
             telemetry.addData("backright", chassisController.backRightPower);
             telemetry.addData("backleft", chassisController.backLeftPower);
             telemetry.addData("frontright", chassisController.frontRightPower);
             telemetry.addData("frontleft", chassisController.frontLeftPower);
-            telemetry.addData("revving", shooterController.revving);
-            telemetry.addData("shooting", shooterController.shooting);
+
+            telemetry.addData("backLeftVelocity", String.valueOf(Math.round(chassisController.backLeftVelocity))+" degrees/s");
+            telemetry.addData("backRightVelocity", String.valueOf(Math.round(chassisController.backRightVelocity))+" degrees/s");
+            telemetry.addData("frontLeftVelocity", String.valueOf(Math.round(chassisController.frontLeftVelocity))+" degrees/s");
+            telemetry.addData("frontRighttVelocity", String.valueOf(Math.round(chassisController.frontRightVelocity))+" degrees/s");
+                        
+            
             telemetry.update();
 
             if (gamepad1.x) {

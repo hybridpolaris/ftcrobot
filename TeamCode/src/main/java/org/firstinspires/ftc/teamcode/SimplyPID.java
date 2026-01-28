@@ -21,7 +21,7 @@
  */
 
 // src link: 'https://github.com/CGrassin/SimplyPID/tree/master'
-package fr.charleslabs.simplypid;
+package org.firstinspires.ftc.teamcode;
 
 
 /**

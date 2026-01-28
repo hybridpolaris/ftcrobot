@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.Servo;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -34,7 +35,16 @@ public class ChassisController {
     public double backRightPower;
     public double frontLeftPower;
     public double frontRightPower;
-    public static final PIDFCoefficients coefficient = new PIDFCoefficients(0,0,0,0);
+    
+    public double backLeftVelocity;
+    public double backRightVelocity;
+    public double frontLeftVelocity;
+    public double frontRightVelocity;
+
+    public boolean useVelocity  = false;
+    public double maxVelocity = 500;
+    
+    public static PIDFCoefficients coefficient = new PIDFCoefficients(15,5,5,0.5);
     public ChassisController(LinearOpMode _opMode) {
         opMode = _opMode;
     }
@@ -46,10 +56,20 @@ public class ChassisController {
         frontRightMotor = opMode.hardwareMap.get(DcMotorEx.class, "em0");
         
         backLeftMotor.setDirection(DcMotor.Direction.FORWARD);
-        backRightMotor.setDirection(DcMotor.Direction.REVERSE);
-        frontLeftMotor.setDirection(DcMotor.Direction.FORWARD);
-        frontRightMotor.setDirection(DcMotor.Direction.FORWARD);
+        backRightMotor.setDirection(DcMotor.Direction.FORWARD);
+        frontLeftMotor.setDirection(DcMotor.Direction.REVERSE);
+        frontRightMotor.setDirection(DcMotor.Direction.REVERSE);
         
+        backLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        
+        ((DcMotorEx) backLeftMotor).setMotorEnable();
+        ((DcMotorEx) backRightMotor).setMotorEnable();
+        ((DcMotorEx) frontLeftMotor).setMotorEnable();
+        ((DcMotorEx) frontRightMotor).setMotorEnable();
+
         ((DcMotorEx) backLeftMotor).setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficient);
         ((DcMotorEx) backRightMotor).setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficient);
         ((DcMotorEx) frontLeftMotor).setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficient);
@@ -73,25 +93,43 @@ public class ChassisController {
         backRightPower = (Math.cos(moveAngle) + Math.sin(moveAngle)) * moveMagnitude;
         frontLeftPower = (Math.cos(moveAngle) + Math.sin(moveAngle)) * moveMagnitude;
         frontRightPower = (Math.cos(moveAngle) - Math.sin(moveAngle)) * moveMagnitude;
-
-        backLeftPower += turnPower;
-        frontLeftPower += turnPower;
-        backRightPower -= turnPower;
-        frontRightPower -= turnPower;
+        
+        double microPower = Math.max(Math.min(turnPower * 2, 1), turnPower);
+        double reservePower = turnPower * 2 - microPower; 
+        backLeftPower += microPower;
+        frontLeftPower += reservePower;
+        backRightPower -= reservePower;
+        frontRightPower -= microPower;
 
         // Due to naively applying turn power to motor, this block scales all motor down so that the highest powered motor is 1. Also applies drivePower.
-        double magnitude = Math.max(Math.max(Math.max(Math.abs(backLeftPower), Math.abs(backRightPower)), Math.abs(frontLeftPower)), Math.abs(frontRightPower)) / drivePower;
+        double magnitude = Math.max(Math.max(Math.max(Math.abs(backLeftPower), Math.abs(backRightPower)), Math.abs(frontLeftPower)), Math.abs(frontRightPower)) / drivePower / (Math.abs(moveMagnitude) + Math.abs(turnPower));
 
         backLeftPower /= magnitude;
         frontLeftPower /= magnitude;
         backRightPower /= magnitude;
         frontRightPower /= magnitude;
 
+        if (useVelocity){
+            ((DcMotorEx) backLeftMotor).setVelocity(backLeftPower * maxVelocity, AngleUnit.DEGREES);
+            ((DcMotorEx) frontLeftMotor).setVelocity(frontLeftPower * maxVelocity, AngleUnit.DEGREES);
+            ((DcMotorEx) backRightMotor).setVelocity(backRightPower * maxVelocity, AngleUnit.DEGREES);
+            ((DcMotorEx) frontRightMotor).setVelocity(frontRightPower  * maxVelocity, AngleUnit.DEGREES);
+        }else {
+            backLeftMotor.setPower(backLeftPower);
+            frontLeftMotor.setPower(frontLeftPower);
+            backRightMotor.setPower(backRightPower);
+            frontRightMotor.setPower(frontRightPower);
+        }
         
-        backLeftMotor.setPower(backLeftPower);
-        frontLeftMotor.setPower(frontLeftPower);
+        
+        backLeftPower = backLeftMotor.getPower();
+        frontLeftPower = frontLeftMotor.getPower();
+        backRightPower = backRightMotor.getPower();
+        frontRightPower = frontRightMotor.getPower();
 
-        backRightMotor.setPower(backRightPower);
-        frontRightMotor.setPower(frontRightPower);
+        backLeftVelocity = ((DcMotorEx) backLeftMotor).getVelocity(AngleUnit.DEGREES);
+        backRightVelocity = ((DcMotorEx) backRightMotor).getVelocity(AngleUnit.DEGREES);
+        frontLeftVelocity = ((DcMotorEx) frontLeftMotor).getVelocity(AngleUnit.DEGREES);
+        frontRightVelocity = ((DcMotorEx) frontRightMotor).getVelocity(AngleUnit.DEGREES);
     }
 }
