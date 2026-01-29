@@ -36,52 +36,122 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Driver Station OpMode list, or add a @Disabled annotation to prevent this OpMode from being
  * added to the Driver Station.
  */
-@Autonomous
-
-public class AutoRed1 extends LinearOpMode {
+@Autonomous(name = "Auto goal start")
+public class AutoGoalStart extends LinearOpMode {
     private ShooterController shooterController = new ShooterController(this);
     private ChassisController chassisController = new ChassisController(this);
-    
+    private boolean last_a_button = false;
+    private boolean redTeam = true;
+    private int teamModifier = 1;
     @Override
     public void runOpMode() {
+        while(opModeInInit()){
+            if (!last_a_button && gamepad1.a) {
+                redTeam = !redTeam;
+                teamModifier = redTeam?1:-1;
+            }
+            last_a_button = gamepad1.a;
+            telemetry.addData("Team", redTeam ? "red" : "blue");
+            telemetry.update();
+        }
         waitForStart();
-        
         shooterController.init();
         chassisController.init();
-        //chassisController.useVelocity = true;
-        chassisController.maxVelocity = 500;
         waitForStart();
         
         shooterController.setWeakIdle();
         
-        chassisController.run(0,-0.5,0);
-        sleep(700);
-        chassisController.run(0,0,0);
-        sleep(100);
-        chassisController.run(0,0,0.8);
-        sleep(300);
-        chassisController.run(0,0,0);
-        sleep(100);
-        chassisController.run(0,-0.5,0);
-        sleep(1500);
-        chassisController.run(0,0,0);
+        chassisController.run(0,-0.4,0);
+        sleepThenPause(900);
         
-        shooterController.setRevving(365);
-        sleep(2500);
+        turn45(teamModifier);
         
-        shooterController.setShooting(365);
+        chassisController.run(0,-0.6,0);
+        sleepThenPause(1200);
         
-        sleep(2500);
-        shooterController.setIdle();
+        //fire
+        fire(390);
+        //
+        turn50(teamModifier);
+        
+        chassisController.run(0,0.4,0);
+        sleepThenPause(1900);
+        shooterController.setWeakIdle();
+        //
+        chassisController.run(0,-0.4,0);
+        sleepThenPause(1900);
+        
+        turn50(-teamModifier);
+        
+        fire(390);
+        //
+        turn50(teamModifier);
+        
+        chassisController.run(Math.toRadians(90),0.6 * teamModifier,0);
+        sleepThenPause(900);
+        //
+        chassisController.run(0,0.4,0);
+        sleepThenPause(2000);
+        shooterController.setWeakIdle();
+        //
+        chassisController.run(0,-0.3,0);
+        sleepThenPause(300);
+        chassisController.run(Math.toRadians(-90),0.6 * teamModifier,0);
+        sleepThenPause(300);
+        chassisController.run(0,0.3,0);
+        sleepThenPause(500);
+        //
+        chassisController.run(0,-0.4,0);
+        sleepThenPause(2000);
+        //
+        
+        
+        turn50(-teamModifier);
+        
+        chassisController.run(0,0.4,0);
+        sleepThenPause(600);
+        
+        chassisController.run(Math.toRadians(-90),0.6 * teamModifier,0);
+        sleepThenPause(300);
+        
+        fire(400);
+        shooterController.setWeakIdle();
+        /*
         sleep(600);
         chassisController.run(0,0,0.8);
         sleep(300);
-        chassisController.run(0,0,0);
+        chassisController.run(0,0,0);*/
 
         while (opModeIsActive()) {
             telemetry.addData("Status", "Running");
             telemetry.update();
 
         }
+    }
+    void turn45(int direction){
+        chassisController.run(0,0,0.3*direction);
+        sleepThenPause(700);
+    }
+    void turn50(int direction){
+        chassisController.run(0,0,0.3*direction);
+        sleepThenPause(730);
+    }
+    void pause(){
+        chassisController.run(0,0,0);
+        sleep(150);
+    }
+    void sleepThenPause(int time){
+        sleep(time);
+        chassisController.run(0,0,0);
+        sleep(150);
+    }
+    void fire(double vel){
+        shooterController.setRevving(vel);
+        sleep(1500);
+        
+        shooterController.setShooting(vel);
+        sleep(1500);
+        shooterController.setIdle();
+        sleepThenPause(200);
     }
 }

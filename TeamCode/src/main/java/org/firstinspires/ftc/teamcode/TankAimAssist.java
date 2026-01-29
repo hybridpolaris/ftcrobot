@@ -42,20 +42,11 @@ public class TankAimAssist extends LinearOpMode {
 
         waitForStart();
         while (opModeIsActive()) {
-            // Prevents divison by zero if both sticks are idle
             double left_mag = Math.max(0.0000000001, Math.sqrt(gamepad1.left_stick_y * gamepad1.left_stick_y + gamepad1.left_stick_x * gamepad1.left_stick_x));
             double right_mag = Math.max(0.0000000001, Math.sqrt(gamepad1.right_stick_y * gamepad1.right_stick_y + gamepad1.right_stick_x * gamepad1.right_stick_x));
-            double left_dir = Math.atan2(gamepad1.left_stick_y / left_mag, gamepad1.left_stick_x / left_mag);
-            double right_dir = Math.atan2(gamepad1.right_stick_y / right_mag, gamepad1.right_stick_x / right_mag);
-            left_dir = Math.round(left_dir / (Math.PI / 2)) * (Math.PI / 2);
-            right_dir = Math.round(right_dir / (Math.PI / 2)) * (Math.PI / 2);
-            // Round the direction of both joysticks to multiples of 90 degrees for ease of control
-            
-            // Drive = joystick Y, Strafe = joystick X
-            double left_drive = -Math.sin(left_dir) * left_mag;
-            double left_strafe = Math.cos(left_dir) * left_mag;
-            double right_drive = -Math.sin(right_dir) * right_mag;
-            double right_strafe = Math.cos(right_dir) * right_mag;
+
+            double left_drive = -gamepad1.left_stick_y / Math.max(0.0000000001,Math.abs(gamepad1.left_stick_y)) * left_mag;
+            double right_drive = -gamepad1.right_stick_y / Math.max(0.0000000001,Math.abs(gamepad1.right_stick_y)) * right_mag;
 
             double backLeftPower;
             double backRightPower;
@@ -63,11 +54,11 @@ public class TankAimAssist extends LinearOpMode {
             double frontLeftPower;
             double frontRightPower;
 
-            backLeftPower = left_drive - left_strafe;
-            frontLeftPower = left_drive + left_strafe;
+            backLeftPower = left_drive;
+            frontLeftPower = left_drive;
 
-            backRightPower = right_drive + right_strafe;
-            frontRightPower = right_drive - right_strafe;
+            backRightPower = right_drive;
+            frontRightPower = right_drive;
 
             backLeftPower = Range.clip(backLeftPower, -1.0, 1.0);
             frontLeftPower = Range.clip(frontLeftPower, -1.0, 1.0);
@@ -101,13 +92,17 @@ public class TankAimAssist extends LinearOpMode {
 
             // Tracks shooter variables and motor speed. Also shows which mode is selected(power or degrees/s)
             telemetry.addData("Shooter d/s (A/B)", String.valueOf(shooterController.shooterDps)+" degrees/s");
+            telemetry.addData("","");
             telemetry.addData("Shooter velocity left", String.valueOf(Math.round(shooterController.shooterLeftVelocity))+" degrees/s");
             telemetry.addData("Shooter velocity right", String.valueOf(Math.round(shooterController.shooterRightVelocity))+" degrees/s");
             telemetry.addData("Shooter power left", FoxUtil.toPercentage(shooterController.shooterLeftPower));
             telemetry.addData("Shooter power right", FoxUtil.toPercentage(shooterController.shooterRightPower));
+            telemetry.addData("","");
+            telemetry.addData("Uses encoder", shooterController.encoder);
+            telemetry.addData("","");
 
             telemetry.addData("Target", aimAssist.lostNavigation?"lost":"available, press Y to track");
-            if (aimAssist.lostNavigation){
+            if (!aimAssist.lostNavigation){
                 telemetry.addData("Distance from target", Math.round(aimAssist.distance));
                 telemetry.addData("Power estimate", dpsEstimate);
             }
