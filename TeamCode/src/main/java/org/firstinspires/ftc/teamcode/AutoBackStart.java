@@ -36,8 +36,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Driver Station OpMode list, or add a @Disabled annotation to prevent this OpMode from being
  * added to the Driver Station.
  */
-@Autonomous(name = "Auto goal start", preselectTeleOp = "Tank controller with aim assist")
-public class AutoGoalStart extends LinearOpMode {
+@Autonomous(name = "Auto back start", preselectTeleOp = "Tank controller with aim assist")
+public class AutoBackStart extends LinearOpMode {
     private ShooterController shooterController = new ShooterController(this);
     private ChassisController chassisController = new ChassisController(this);
     private boolean last_a = false;
@@ -63,66 +63,54 @@ public class AutoGoalStart extends LinearOpMode {
         }
         shooterController.init();
         chassisController.init();
+
         waitForStart();
-        
         shooterController.setWeakIdle();
-        
-        chassisController.run(0,-0.4,0);
+
+        chassisController.run(0,0.4,0);
+        sleepThenPause(200);
+        chassisController.run(0,0,0.3*teamModifier);
+        sleepThenPause(400);
+
+        fire(450);
+
+        chassisController.run(0,0,0.3*teamModifier);
+        sleepThenPause(1000);
+        chassisController.run(Math.toRadians(-90),0.6 * teamModifier,0);
         sleepThenPause(900);
-        
-        turn45(teamModifier);
-        
-        chassisController.run(0,-0.6,0);
-        sleepThenPause(1200);
-        
-        //fire
-        fire(390);
+
         //
-        turn50(teamModifier);
-        
         chassisController.run(0,0.4,0);
         sleepThenPause(1900);
         shooterController.setWeakIdle();
-        //
         chassisController.run(0,-0.4,0);
         sleepThenPause(1900);
-        
-        turn50(-teamModifier);
-        
-        fire(390);
-        if (ignoreFinalSet) return;
-        //
-        turn50(teamModifier);
-        
-        chassisController.run(Math.toRadians(90),0.6 * teamModifier,0);
-        sleepThenPause(900);
-        //
-        chassisController.run(0,0.4,0);
-        sleepThenPause(2000);
-        shooterController.setWeakIdle();
-        //
-        chassisController.run(0,-0.3,0);
-        sleepThenPause(300);
-        chassisController.run(Math.toRadians(-90),0.6 * teamModifier,0);
-        sleepThenPause(300);
-        chassisController.run(0,0.3,0);
-        sleepThenPause(500);
-        //
-        chassisController.run(0,-0.4,0);
-        sleepThenPause(2000);
         //
         
-        
-        turn50(-teamModifier);
-        
-        chassisController.run(0,0.4,0);
-        sleepThenPause(600);
-        
-        chassisController.run(Math.toRadians(-90),0.6 * teamModifier,0);
-        sleepThenPause(300);
-        
+        chassisController.run(0,0,-0.3*teamModifier);
+        sleepThenPause(800);
+
         fire(400);
+
+        if (ignoreFinalSet) return;
+
+        chassisController.run(0,0,0.3*teamModifier);
+        sleepThenPause(800);
+        chassisController.run(Math.toRadians(-90),0.6 * teamModifier,0);
+        sleepThenPause(900);
+
+        //
+        chassisController.run(0,0.4,0);
+        sleepThenPause(1900);
         shooterController.setWeakIdle();
+        chassisController.run(0,-0.4,0);
+        sleepThenPause(1900);
+        //
+        
+        chassisController.run(0,0,-0.3*teamModifier);
+        sleepThenPause(700);
+
+        fire(360);
     }
     void turn45(int direction){
         chassisController.run(0,0,0.3*direction);

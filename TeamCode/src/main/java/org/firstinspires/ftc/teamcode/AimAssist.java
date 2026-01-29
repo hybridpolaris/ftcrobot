@@ -22,15 +22,9 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagLibrary;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 public class AimAssist {
-    public enum Team {
-        RED,
-        BLUE
-    }
-    public static Team team = Team.RED;
     public boolean lostNavigation = false;
     public double distance = 0;
 
-    private boolean redTeam = team == Team.RED;
     private ChassisController chassisController;
     private SimplyPID pid = new SimplyPID(0,0.05,0,0.3);
 
@@ -41,20 +35,32 @@ public class AimAssist {
     VectorF relativeTagPosition = new VectorF(0, 0);
     VisionPortal visionPortal;
     LinearOpMode opMode;
+    
+    private boolean last_a_button = false;
+    private boolean redTeam = true;
+
     public AimAssist(ChassisController controller, LinearOpMode op) {
         chassisController = controller;
         opMode = op;
     }
     public void init() {
+        pid.setOuputLimits(-1, 1);
         cameraPosition = new Position(DistanceUnit.INCH, 0, 0, 0, 0);
         cameraOrientation = new YawPitchRollAngles(AngleUnit.DEGREES, 0, -90, 0, 0);
         initAprilTag();
-
-        pid.setOuputLimits(-1, 1);
+        
+        while(opModeInInit()){
+            if (!last_a_button && gamepad1.a) {
+                redTeam = !redTeam;
+            }
+            last_a_button = gamepad1.a;
+            telemetry.addData("Team", redTeam ? "red" : "blue");
+            telemetry.update();
+        }
     }
 
     public void track(boolean move) {
-        getPoseEstimation(24);
+        getPoseEstimation(redTeam?24:20);
         if (lostNavigation || !move) return;
         double angleDelta = -Math.toDegrees(Math.atan2(relativeTagPosition.getData()[0], relativeTagPosition.getData()[1]));
         double turnPower = pid.getOutput(System.currentTimeMillis(), angleDelta);
@@ -82,7 +88,9 @@ public class AimAssist {
         
         opMode.telemetry.addData("Camera","Waiting for stream. Press X to cancel");
         opMode.telemetry.update();
+
         while (!opMode.isStopRequested() && (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING) && !opMode.gamepad1.x) {}
+
         if (visionPortal.getCameraState() == VisionPortal.CameraState.STREAMING){
             ExposureControl exposureControl = visionPortal.getCameraControl(ExposureControl.class);
             if (exposureControl.getMode() != ExposureControl.Mode.Manual) {
