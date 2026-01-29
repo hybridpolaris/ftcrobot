@@ -11,10 +11,10 @@ import com.qualcomm.robotcore.util.BatteryChecker;
 import java.lang.Math;
 
 
-@TeleOp(name = "Tank controller with aim assist")
+@TeleOp(name = "Joystick controller with aim assist")
 //The primary TeleOp mode
 
-public class TankAimAssist extends LinearOpMode {
+public class JoystickAimAssist extends LinearOpMode {
     private DcMotor backLeftMotor = null;
     private DcMotor backRightMotor = null;
     private DcMotor frontLeftMotor = null;
@@ -42,46 +42,16 @@ public class TankAimAssist extends LinearOpMode {
 
         waitForStart();
         while (opModeIsActive()) {
-            double left_mag = Math.max(0.0000000001, Math.sqrt(gamepad1.left_stick_y * gamepad1.left_stick_y + gamepad1.left_stick_x * gamepad1.left_stick_x));
-            double right_mag = Math.max(0.0000000001, Math.sqrt(gamepad1.right_stick_y * gamepad1.right_stick_y + gamepad1.right_stick_x * gamepad1.right_stick_x));
+            double x_control = gamepad1.left_stick_x + ((gamepad1.dpad_right?1:0)-(gamepad1.dpad_left?1:0));
+            double y_control = -gamepad1.left_stick_y + ((gamepad1.dpad_up?1:0)-(gamepad1.dpad_down?1:0));
+            double turn  =  gamepad1.right_stick_x;
 
-            double left_drive = -gamepad1.left_stick_y / Math.max(0.0000000001,Math.abs(gamepad1.left_stick_y)) * left_mag;
-            double right_drive = -gamepad1.right_stick_y / Math.max(0.0000000001,Math.abs(gamepad1.right_stick_y)) * right_mag;
+            double driveAngle = Math.atan2(x_control, y_control);
+            double driveMagnitude = Math.sqrt(Math.pow(x_control,2) + Math.pow(y_control,2));
 
-            double backLeftPower;
-            double backRightPower;
-
-            double frontLeftPower;
-            double frontRightPower;
-
-            backLeftPower = left_drive;
-            frontLeftPower = left_drive;
-
-            backRightPower = right_drive;
-            frontRightPower = right_drive;
-
-            backLeftPower = Range.clip(backLeftPower, -1.0, 1.0);
-            frontLeftPower = Range.clip(frontLeftPower, -1.0, 1.0);
-
-            backRightPower = Range.clip(backRightPower, -1.0, 1.0);
-            frontRightPower = Range.clip(frontRightPower, -1.0, 1.0);
-
-            backLeftMotor.setPower(backLeftPower * drivePower);
-            frontLeftMotor.setPower(frontLeftPower * drivePower);
-
-            backRightMotor.setPower(backRightPower * drivePower);
-            frontRightMotor.setPower(frontRightPower * drivePower);
+            shooterController.run();
+            chassisController.run(driveAngle, driveMagnitude, turn);
             
-            if (gamepad1.dpad_right || gamepad1.dpad_down || gamepad1.dpad_left || gamepad1.dpad_up && !gamepad1.y) {
-                // Dpad override, uses code from joystick for diagonal movement. Not called if no gamepad inputs are made.
-                double x_control = (gamepad1.dpad_right ? 1 : 0) - (gamepad1.dpad_left ? 1 : 0);
-                double y_control = (gamepad1.dpad_up ? 1 : 0) - (gamepad1.dpad_down ? 1 : 0);
-
-                double driveAngle = Math.atan2(x_control, y_control);
-                double driveMagnitude = Math.sqrt(Math.pow(x_control, 2) + Math.pow(y_control, 2));
-
-                chassisController.run(driveAngle, driveMagnitude, 0);
-            }
             aimAssist.track(gamepad1.y);
             dpsEstimate = Math.round(aimAssist.distance) + 250;
             if (gamepad1.y){
@@ -114,4 +84,4 @@ public class TankAimAssist extends LinearOpMode {
             telemetry.update();
         }
     }
-}
+} 
