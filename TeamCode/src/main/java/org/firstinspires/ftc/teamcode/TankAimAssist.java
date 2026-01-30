@@ -91,26 +91,22 @@ public class TankAimAssist extends LinearOpMode {
         
 
             // Tracks shooter variables and motor speed. Also shows which mode is selected(power or degrees/s)
+            telemetry.addData("Tracking team", aimAssist.redTeam?"red":"blue");
+            telemetry.addData("Target", aimAssist.lostNavigation?"lost":"available, hold Y to track");
+            if (!aimAssist.lostNavigation){
+                telemetry.addData("Distance from target", Math.round(aimAssist.distance));
+                telemetry.addData("Power estimate", dpsEstimate);
+            }            
+            telemetry.addLine("");
             telemetry.addData("Shooter d/s (A/B)", String.valueOf(shooterController.shooterDps)+" degrees/s");
-            telemetry.addData("","");
+            telemetry.addLine("");
             telemetry.addData("Shooter velocity left", String.valueOf(Math.round(shooterController.shooterLeftVelocity))+" degrees/s");
             telemetry.addData("Shooter velocity right", String.valueOf(Math.round(shooterController.shooterRightVelocity))+" degrees/s");
             telemetry.addData("Shooter power left", FoxUtil.toPercentage(shooterController.shooterLeftPower));
             telemetry.addData("Shooter power right", FoxUtil.toPercentage(shooterController.shooterRightPower));
-            telemetry.addData("","");
+            telemetry.addLine("");
             telemetry.addData("Uses encoder", shooterController.encoder);
             telemetry.addData("Uses power", shooterController.usePower);
-            telemetry.addData("Left PIDF", String.valueOf(shooterController.leftCoefficient.p) + " " + String.valueOf(shooterController.leftCoefficient.i) + " " + String.valueOf(shooterController.leftCoefficient.d) + " " + String.valueOf(shooterController.leftCoefficient.f));
-            telemetry.addData("Right PIDF", String.valueOf(shooterController.rightCoefficient.p) + " " + String.valueOf(shooterController.rightCoefficient.i) + " " + String.valueOf(shooterController.rightCoefficient.d) + " " + String.valueOf(shooterController.rightCoefficient.f));
-
-            telemetry.addData("","");
-
-            telemetry.addData("Target", aimAssist.lostNavigation?"lost":"available, press Y to track");
-            if (!aimAssist.lostNavigation){
-                telemetry.addData("Distance from target", Math.round(aimAssist.distance));
-                telemetry.addData("Power estimate", dpsEstimate);
-            }
-
             telemetry.update();
         }
     }

@@ -36,11 +36,12 @@ public class AimAssist {
     VectorF tagPosition = new VectorF(0,0);
     VectorF tagOffset = new VectorF(10,10);
     double currentYaw = 0;
+    double angleDiff = 0;
     VisionPortal visionPortal;
     LinearOpMode opMode;
     
     private boolean last_a_button = false;
-    private boolean redTeam = true;
+    public boolean redTeam = true;
 
     public AimAssist(ChassisController controller, LinearOpMode op) {
         chassisController = controller;
@@ -49,7 +50,7 @@ public class AimAssist {
     public void init() {
         pid.setOuputLimits(-1, 1);
         cameraPosition = new Position(DistanceUnit.INCH, 0, 0, 0, 0);
-        cameraOrientation = new YawPitchRollAngles(AngleUnit.DEGREES, 0, -90, 0, 0);
+        cameraOrientation = new YawPitchRollAngles(AngleUnit.DEGREES, 0, -90, 180, 0);
         initAprilTag();
         
         while(opMode.opModeInInit()){
@@ -66,10 +67,25 @@ public class AimAssist {
 
     public void track(boolean move) {
         getPoseEstimation(redTeam?24:20);
+        if (!lostNavigation){
+        VectorF relativeTagPosition = tagPosition.subtracted(robotPosition);
+                    double targetAngle = Math.toDegrees(Math.atan2(relativeTagPosition.get(0), relativeTagPosition.get(1)));
+
+        opMode.telemetry.addData("Rx",robotPosition.get(0));
+        opMode.telemetry.addData("Ry",robotPosition.get(1));
+        opMode.telemetry.addData("Tx",tagPosition.get(0));
+        opMode.telemetry.addData("Ty",tagPosition.get(1));
+        opMode.telemetry.addData("Dx",relativeTagPosition.get(0));
+        opMode.telemetry.addData("Dy",relativeTagPosition.get(1));
+        opMode.telemetry.addData("Cyaw",currentYaw);
+        opMode.telemetry.addData("target",targetAngle);
+        opMode.telemetry.addData("CalcedAngleDiff",targetAngle - currentYaw);
+        opMode.telemetry.addData("RealAngleDIff",angleDiff);
+        }
         if (lostNavigation || !move) return;
-        VectorF relativeTagPosition = tagPosition.added(tagOffset).subtracted(robotPosition);
+        VectorF relativeTagPosition = tagPosition.subtracted(robotPosition);
         double targetAngle = Math.toDegrees(Math.atan2(relativeTagPosition.get(0), relativeTagPosition.get(1)));
-        double turnPower = pid.getOutput(System.currentTimeMillis(), targetAngle - currentYaw);
+        double turnPower = pid.getOutput(System.currentTimeMillis(), angleDiff);
         chassisController.run(0, 0, turnPower);
     }
 
@@ -127,6 +143,7 @@ public class AimAssist {
                     tagPosition.put(1, aprilTag.metadata.fieldPosition.get(1));
                     distance = aprilTag.ftcPose.range;
                     currentYaw = aprilTag.robotPose.getOrientation().getYaw();
+                    angleDiff = Math.toDegrees(Math.atan2(aprilTag.ftcPose.x,aprilTag.ftcPose.y));
                 }
             }
         }

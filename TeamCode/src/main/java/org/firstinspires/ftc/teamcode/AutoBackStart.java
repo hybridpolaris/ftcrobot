@@ -43,9 +43,10 @@ public class AutoBackStart extends LinearOpMode {
     private boolean lastDpad = false;
 
     private boolean redTeam = true;
-    private boolean noFire = true;
+    private boolean noFire = false;
     private boolean ignoreFinalSet = false;
-    private double timeModifier = 0;
+    private double timeModifier = 1;
+    private double powerModifier = 1;
 
     private int selectedData = 0;
     private int teamModifier = 1;
@@ -55,10 +56,10 @@ public class AutoBackStart extends LinearOpMode {
             boolean dpad = gamepad1.dpad_up || gamepad1.dpad_down || gamepad1.dpad_left || gamepad1.dpad_right;
             if (dpad && !lastDpad) {
                 if (gamepad1.dpad_down){
-                    selectedData -= 1;
+                    selectedData += 1;
                 }
                 if (gamepad1.dpad_up){
-                    selectedData += 1;
+                    selectedData -= 1;
                 }
                 selectedData = (selectedData + 400) % 4;
                 if (gamepad1.dpad_right || gamepad1.dpad_left){
@@ -67,9 +68,9 @@ public class AutoBackStart extends LinearOpMode {
                     if (selectedData == 2) noFire = !noFire;
                     if (selectedData == 3) {
                         if (gamepad1.dpad_right){
-                            teamModifier += 0.05;
+                            powerModifier += 0.05;
                         }else {
-                            teamModifier -= 0.05;
+                            powerModifier -= 0.05;
                         }
                     }
                 }
@@ -78,8 +79,8 @@ public class AutoBackStart extends LinearOpMode {
             telemetry.addData((selectedData == 0?">":"") + "Team", redTeam ? "red" : "blue");
             telemetry.addData((selectedData == 1?">":"") + "Ignore final set", ignoreFinalSet);
             telemetry.addData((selectedData == 2?">":"") + "Disable firing", noFire);
-            telemetry.addData((selectedData == 3?">":"") + "Distance modifier", timeModifier);
-            telemetry.addData("Controls", "Dpad < > to change values, v ^ to select");
+            telemetry.addData((selectedData == 3?">":"") + "Distance modifier", powerModifier);
+            telemetry.addData("Controls", "Dpad < > to change values, v ^ to select.");
             telemetry.update();
         }
         teamModifier = redTeam?1:-1;
@@ -89,61 +90,61 @@ public class AutoBackStart extends LinearOpMode {
         waitForStart();
         shooterController.setWeakIdle();
 
-        chassisController.run(0,0.4,0);
+        runWithModifier(0,0.4,0);
         sleepThenPause(200);
-        chassisController.run(0,0,0.3*teamModifier);
+        runWithModifier(0,0,0.3*teamModifier);
         sleepThenPause(400);
 
         fire(450);
 
-        chassisController.run(0,0,0.3*teamModifier);
+        runWithModifier(0,0,0.3*teamModifier);
         sleepThenPause(1000);
-        chassisController.run(Math.toRadians(-90),0.6 * teamModifier,0);
+        runWithModifier(Math.toRadians(-90),0.6 * teamModifier,0);
         sleepThenPause(900);
 
         //
-        chassisController.run(0,0.4,0);
+        runWithModifier(0,0.4,0);
         sleepThenPause(1900);
         shooterController.setWeakIdle();
-        chassisController.run(0,-0.4,0);
+        runWithModifier(0,-0.4,0);
         sleepThenPause(1900);
         //
         
-        chassisController.run(0,0,-0.3*teamModifier);
+        runWithModifier(0,0,-0.3*teamModifier);
         sleepThenPause(800);
 
         fire(400);
 
         if (ignoreFinalSet) return;
 
-        chassisController.run(0,0,0.3*teamModifier);
+        runWithModifier(0,0,0.3*teamModifier);
         sleepThenPause(800);
-        chassisController.run(Math.toRadians(-90),0.6 * teamModifier,0);
+        runWithModifier(Math.toRadians(-90),0.6 * teamModifier,0);
         sleepThenPause(900);
 
         //
-        chassisController.run(0,0.4,0);
+        runWithModifier(0,0.4,0);
         sleepThenPause(1900);
         shooterController.setWeakIdle();
-        chassisController.run(0,-0.4,0);
+        runWithModifier(0,-0.4,0);
         sleepThenPause(1900);
         //
         
-        chassisController.run(0,0,-0.3*teamModifier);
+        runWithModifier(0,0,-0.3*teamModifier);
         sleepThenPause(700);
 
         fire(360);
     }
     void turn45(int direction){
-        chassisController.run(0,0,0.3*direction);
+        runWithModifier(0,0,0.3*direction);
         sleepThenPause(700);
     }
     void turn50(int direction){
-        chassisController.run(0,0,0.3*direction);
+        runWithModifier(0,0,0.3*direction);
         sleepThenPause(730);
     }
     void pause(){
-        chassisController.run(0,0,0);
+        runWithModifier(0,0,0);
         sleep(150);
     }
     void sleepThenPause(int time){
@@ -166,5 +167,8 @@ public class AutoBackStart extends LinearOpMode {
     }
     void sleepWithModifier(int time){
         sleep(((Double)(time * timeModifier)).intValue());
+    }    
+    void runWithModifier(double moveAngle, double moveMagnitude, double turnPower) {
+        chassisController.run(moveAngle,moveMagnitude * powerModifier, turnPower * powerModifier);
     }
 }
