@@ -40,27 +40,49 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class AutoGoalStart extends LinearOpMode {
     private ShooterController shooterController = new ShooterController(this);
     private ChassisController chassisController = new ChassisController(this);
-    private boolean last_a = false;
-    private boolean last_b = false;
+    private boolean lastDpad = false;
+
     private boolean redTeam = true;
+    private boolean noFire = true;
     private boolean ignoreFinalSet = false;
+    private double timeModifier = 0;
+
+    private int selectedData = 0;
     private int teamModifier = 1;
     @Override
     public void runOpMode() {
         while(opModeInInit()){
-            if (!last_a && gamepad1.a) {
-                redTeam = !redTeam;
-                teamModifier = redTeam?1:-1;
+            boolean dpad = gamepad1.dpad_up || gamepad1.dpad_down || gamepad1.dpad_left || gamepad1.dpad_right;
+            if (dpad && !lastDpad) {
+                if (gamepad1.dpad_down){
+                    selectedData -= 1;
+                }
+                if (gamepad1.dpad_up){
+                    selectedData += 1;
+                }
+                selectedData = (selectedData + 400) % 4;
+                if (gamepad1.dpad_right || gamepad1.dpad_left){
+                    if (selectedData == 0) redTeam = !redTeam;
+                    if (selectedData == 1) ignoreFinalSet = !ignoreFinalSet;
+                    if (selectedData == 2) noFire = !noFire;
+                    if (selectedData == 3) {
+                        if (gamepad1.dpad_right){
+                            teamModifier += 0.05;
+                        }else {
+                            teamModifier -= 0.05;
+                        }
+                    }
+                }
             }
-            if (!last_b && gamepad1.b) {
-                ignoreFinalSet = !ignoreFinalSet;
-            }
-            last_a = gamepad1.a;
-            last_b = gamepad1.b;
-            telemetry.addData("Team", redTeam ? "red" : "blue");
-            telemetry.addData("Ignore final set", ignoreFinalSet);
+            lastDpad = dpad;
+            telemetry.addData((selectedData == 0?">":"") + "Team", redTeam ? "red" : "blue");
+            telemetry.addData((selectedData == 1?">":"") + "Ignore final set", ignoreFinalSet);
+            telemetry.addData((selectedData == 2?">":"") + "Disable firing", noFire);
+            telemetry.addData((selectedData == 3?">":"") + "Distance modifier", timeModifier);
+            telemetry.addData("Controls", "Dpad < > to change values, v ^ to select.");
             telemetry.update();
         }
+        teamModifier = redTeam?1:-1;
         shooterController.init();
         chassisController.init();
         waitForStart();
@@ -137,17 +159,24 @@ public class AutoGoalStart extends LinearOpMode {
         sleep(150);
     }
     void sleepThenPause(int time){
-        sleep(time);
-        chassisController.run(0,0,0);
-        sleep(150);
+        sleepWithModifier(time);
+        pause();
     }
     void fire(double vel){
-        shooterController.setRevving(vel);
+        if (noFire){
+            shooterController.setUnclogIdle();
+        } else {
+            shooterController.setRevving(vel);
+        }
         sleep(1500);
-        
-        shooterController.setShooting(vel);
+        if (!noFire){
+            shooterController.setShooting(vel);
+        }
         sleep(1500);
         shooterController.setIdle();
         sleepThenPause(200);
+    }
+    void sleepWithModifier(int time){
+        sleep(((Double)(time * timeModifier)).intValue());
     }
 }

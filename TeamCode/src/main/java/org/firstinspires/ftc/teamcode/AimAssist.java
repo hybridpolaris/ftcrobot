@@ -32,7 +32,10 @@ public class AimAssist {
     Position cameraPosition;
     YawPitchRollAngles cameraOrientation;
 
-    VectorF relativeTagPosition = new VectorF(0, 0);
+    VectorF robotPosition = new VectorF(0,0);
+    VectorF tagPosition = new VectorF(0,0);
+    VectorF tagOffset = new VectorF(10,10);
+    double currentYaw = 0;
     VisionPortal visionPortal;
     LinearOpMode opMode;
     
@@ -49,21 +52,24 @@ public class AimAssist {
         cameraOrientation = new YawPitchRollAngles(AngleUnit.DEGREES, 0, -90, 0, 0);
         initAprilTag();
         
-        while(opModeInInit()){
-            if (!last_a_button && gamepad1.a) {
+        while(opMode.opModeInInit()){
+            if (!last_a_button && opMode.gamepad1.a) {
                 redTeam = !redTeam;
             }
-            last_a_button = gamepad1.a;
-            telemetry.addData("Team", redTeam ? "red" : "blue");
-            telemetry.update();
+            last_a_button = opMode.gamepad1.a;
+            opMode.telemetry.addData("Team", redTeam ? "red" : "blue");
+            opMode.telemetry.addData("Controls", "A to change team");
+            opMode.telemetry.update();
         }
+        tagOffset.put(1, redTeam?10:-10);
     }
 
     public void track(boolean move) {
         getPoseEstimation(redTeam?24:20);
         if (lostNavigation || !move) return;
-        double angleDelta = -Math.toDegrees(Math.atan2(relativeTagPosition.getData()[0], relativeTagPosition.getData()[1]));
-        double turnPower = pid.getOutput(System.currentTimeMillis(), angleDelta);
+        VectorF relativeTagPosition = tagPosition.added(tagOffset).subtracted(robotPosition);
+        double targetAngle = Math.toDegrees(Math.atan2(relativeTagPosition.get(0), relativeTagPosition.get(1)));
+        double turnPower = pid.getOutput(System.currentTimeMillis(), targetAngle - currentYaw);
         chassisController.run(0, 0, turnPower);
     }
 
@@ -115,8 +121,12 @@ public class AimAssist {
             if (aprilTag.metadata != null) {
                 if (aprilTag.id == targetTag) {
                     lostNavigation = false;
-                    relativeTagPosition = new VectorF(FoxUtil.toFloat(aprilTag.ftcPose.x), FoxUtil.toFloat(aprilTag.ftcPose.y));
+                    robotPosition.put(0, FoxUtil.toFloat(aprilTag.robotPose.getPosition().x));
+                    robotPosition.put(1, FoxUtil.toFloat(aprilTag.robotPose.getPosition().y));
+                    tagPosition.put(0, aprilTag.metadata.fieldPosition.get(0));
+                    tagPosition.put(1, aprilTag.metadata.fieldPosition.get(1));
                     distance = aprilTag.ftcPose.range;
+                    currentYaw = aprilTag.robotPose.getOrientation().getYaw();
                 }
             }
         }

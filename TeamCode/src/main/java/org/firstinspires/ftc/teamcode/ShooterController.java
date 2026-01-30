@@ -127,6 +127,12 @@ public class ShooterController {
         setIntakePower(0.3);
         setShooterVelocity(0);
     }
+    public void setUnclogIdle(){
+        toggleClamp(false);
+        setTransferPower(0);
+        setIntakePower(-1);
+        setShooterVelocity(0);
+    }
     public void setRevving(double vel){
         toggleClamp(true);
         setTransferPower(-1);
@@ -151,7 +157,7 @@ public class ShooterController {
         if (encoder) {
             shooterMotorLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             shooterMotorRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            }else{
+        }else{
             shooterMotorLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             shooterMotorRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         }
