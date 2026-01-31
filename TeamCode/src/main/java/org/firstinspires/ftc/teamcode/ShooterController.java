@@ -62,9 +62,7 @@ public class ShooterController {
     public long clampOpenTimestamp = 0;
     public boolean clampOpen = false;
     // The PID coefficients to be tuned.
-    public static PIDFCoefficients coefficient = new PIDFCoefficients(30, 1, 0.1, 12);
-    public static PIDFCoefficients leftCoefficient = new PIDFCoefficients(30, 0.1, 0.1, 20);
-    public static PIDFCoefficients rightCoefficient = new PIDFCoefficients(30, 0.1, 0.1, 20);
+    public static PIDFCoefficients coefficient = new PIDFCoefficients(35, 0.2, 0.1, 12);
 
     public ShooterController(LinearOpMode _opMode) {
         opMode = _opMode;
@@ -277,7 +275,5 @@ public class ShooterController {
         shooterRightVelocity = ((DcMotorEx) shooterMotorRight).getVelocity(AngleUnit.DEGREES);
         shooterLeftPower = shooterMotorLeft.getPower();
         shooterRightPower = shooterMotorRight.getPower();
-        rightCoefficient = ((DcMotorEx)shooterMotorRight).getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
-        leftCoefficient = ((DcMotorEx)shooterMotorLeft).getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 }

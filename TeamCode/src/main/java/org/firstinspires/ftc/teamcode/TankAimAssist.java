@@ -83,7 +83,7 @@ public class TankAimAssist extends LinearOpMode {
                 chassisController.run(driveAngle, driveMagnitude, 0);
             }
             aimAssist.track(gamepad1.y);
-            dpsEstimate = Math.round(aimAssist.distance) + 250;
+            dpsEstimate = Math.round(aimAssist.distance) + 300;
             if (gamepad1.y){
                 shooterController.shooterDps = dpsEstimate;
             }

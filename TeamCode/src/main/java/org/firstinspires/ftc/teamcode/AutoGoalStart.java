@@ -99,7 +99,7 @@ public class AutoGoalStart extends LinearOpMode {
         sleepThenPause(1200);
         
         //fire
-        fire(390);
+        fire(400);
         //
         turn50(teamModifier);
         
@@ -112,7 +112,7 @@ public class AutoGoalStart extends LinearOpMode {
         
         turn50(-teamModifier);
         
-        fire(390);
+        fire(400);
         if (ignoreFinalSet) return;
         //
         turn50(teamModifier);
@@ -144,7 +144,7 @@ public class AutoGoalStart extends LinearOpMode {
         runWithModifier(Math.toRadians(-90),0.6 * teamModifier,0);
         sleepThenPause(300);
         
-        fire(400);
+        fire(420);
         shooterController.setWeakIdle();
     }
     void turn45(int direction){
